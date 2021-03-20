@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using System.Diagnostics;
 using System;
 using System.Collections.Generic;
+using DungeonCrawler.GameObjects;
 
 namespace DungeonCrawler
 {
@@ -13,6 +14,7 @@ namespace DungeonCrawler
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Player _player;
+        private Room _room;
         private Dictionary<GameObjectType, Texture2D> _textures;
 
         public Game1()
@@ -28,7 +30,8 @@ namespace DungeonCrawler
             // Set player position to middle of screen
             int windowWidth = _graphics.GraphicsDevice.Viewport.Width;
             int windowHeight = _graphics.GraphicsDevice.Viewport.Height;
-            _player = new Player(windowWidth / 2, windowHeight / 2);
+            _player = new Player(100, 100);
+            _room = new Room();
 
             base.Initialize();
         }
@@ -37,9 +40,6 @@ namespace DungeonCrawler
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // TODO: use this.Content to load your game content here
-
-            // Microsoft.Xna.Framework.Content.ContentLoadException
             foreach (string name in Enum.GetNames(typeof(GameObjectType)))
             {
                 Texture2D texture;
@@ -50,6 +50,7 @@ namespace DungeonCrawler
                 catch (ContentLoadException)
                 {
                     // Texture not found, use default texture
+                    Debug.WriteLine("Did not find texture for " + name);
                     Logger.Log("Did not find texture for " + name, "game");
                     texture = Content.Load<Texture2D>("textures/Default");
                 }
@@ -65,35 +66,8 @@ namespace DungeonCrawler
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            if (Keyboard.GetState().IsKeyDown(Keys.A))
-            {
-                _player.Move(Direction.Left);
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.D))
-            {
-                _player.Move(Direction.Right);
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.W))
-            {
-                _player.Move(Direction.Up);
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.S))
-            {
-                _player.Move(Direction.Down);
-            }
-
-            if (Mouse.GetState().LeftButton == ButtonState.Pressed)
-            {
-                _player.Shoot(Mouse.GetState().Position);
-            }
-
-            foreach (Projectile projectile in _player.Projectiles)
-            {
-                projectile.Move();
-            }
+            _player.Update(_room);
+            _room.Update();
         }
 
         protected override void Draw(GameTime gameTime)
@@ -101,13 +75,9 @@ namespace DungeonCrawler
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             _spriteBatch.Begin();
-            
-            DrawObject(_player);
 
-            foreach (Projectile projectile in _player.Projectiles)
-            {
-                DrawObject(projectile);
-            }
+            DrawObject(_player);
+            DrawObject(_room);
 
             _spriteBatch.End();
         }
@@ -117,7 +87,12 @@ namespace DungeonCrawler
             var texture = _textures[gameObject.Type];
             var scale = new Vector2((float)gameObject.Width / texture.Width, (float)gameObject.Height / texture.Height);
 
-            _spriteBatch.Draw(texture, gameObject.Position, null, Color.White, gameObject.Rotation, new Vector2(gameObject.Width / 2, gameObject.Height / 2), scale, SpriteEffects.None, 0);
+            _spriteBatch.Draw(texture, gameObject.Position, null, Color.White, gameObject.Rotation, new Vector2(texture.Width / 2, texture.Height / 2), scale, SpriteEffects.None, 0);
+
+            foreach (var child in gameObject.Children)
+            {
+                DrawObject(child);
+            }
         }
     }
 }

@@ -6,16 +6,31 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DungeonCrawler
+namespace DungeonCrawler.GameObjects
 {
-    public enum GameObjectType { Player, DefaultProjectile, Wall, Enemy };
+    public enum GameObjectType
+    {
+        Room,
+        Player,
+        DefaultProjectile,
+        Wall,
+        Enemy
+    };
+
+    public enum GameObjectState
+    {
+        Active,
+        Inactive
+    };
 
     public abstract class GameObject
     {
         public GameObjectType Type { get; set; }
+        public GameObjectState State { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
         public float Rotation { get; set; }
+        public virtual List<GameObject> Children { get; }
         public Vector2 Position;
         public Vector2 Velocity;
 
@@ -25,6 +40,7 @@ namespace DungeonCrawler
             Position = new Vector2(x, y);
             Width = width;
             Height = height;
+            Children = new List<GameObject>();
         }
     }
 }
