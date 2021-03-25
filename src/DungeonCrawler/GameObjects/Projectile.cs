@@ -6,7 +6,8 @@ namespace DungeonCrawler.GameObjects
 {
     public class Projectile : GameObject
     {
-        private GameObject _source;
+        public GameObject Source { get; }
+        public int Damage { get; set; }
 
         public Projectile(int x, int y, Vector2 travelVector, int speed, GameObject source) : base(
             GameObjectType.DefaultProjectile, x, y, 6, 2)
@@ -15,7 +16,8 @@ namespace DungeonCrawler.GameObjects
 
             Rotation = (float) Math.Atan2(Velocity.Y, Velocity.X);
 
-            _source = source;
+            Source = source;
+            Damage = 1;
         }
 
         public void Update(GameObject gameObjectTree)
@@ -26,7 +28,7 @@ namespace DungeonCrawler.GameObjects
 
             foreach (var gameObject in collisions)
             {
-                if (gameObject.Id == _source.Id)
+                if (gameObject.Id == Source.Id)
                     continue;
 
                 if (gameObject.Type == GameObjectType.Wall)
@@ -35,7 +37,7 @@ namespace DungeonCrawler.GameObjects
                 }
                 else if (gameObject.Type == GameObjectType.Enemy)
                 {
-                    // Do stuff
+                    ((Enemy)gameObject).ProjectileCollision(this);
                 }
                 else if (gameObject.Type == GameObjectType.Player)
                 {

@@ -16,14 +16,14 @@ namespace DungeonCrawler.GameObjects
     {
         public override List<GameObject> Children => Projectiles.Cast<GameObject>().ToList();
         public List<Projectile> Projectiles { get; set; }
-        public int MovingSpeed { get; set; }
-        public int ShootingSpeed { get; set; }
+        private int _movingSpeed;
+        private int _projectileSpeed;
 
         public Player(int x, int y) : base(GameObjectType.Player, x, y, 10, 30)
         {
             Projectiles = new List<Projectile>();
-            MovingSpeed = 1;
-            ShootingSpeed = 5;
+            _movingSpeed = 3;
+            _projectileSpeed = 5;
         }
 
         public void Update(GameObject gameObjectTree)
@@ -71,16 +71,16 @@ namespace DungeonCrawler.GameObjects
             switch (direction)
             {
                 case Direction.Up:
-                    Velocity = -Vector2.UnitY * MovingSpeed;
+                    Velocity = -Vector2.UnitY * _movingSpeed;
                     break;
                 case Direction.Right:
-                    Velocity = Vector2.UnitX * MovingSpeed;
+                    Velocity = Vector2.UnitX * _movingSpeed;
                     break;
                 case Direction.Down:
-                    Velocity = Vector2.UnitY * MovingSpeed;
+                    Velocity = Vector2.UnitY * _movingSpeed;
                     break;
                 case Direction.Left:
-                    Velocity = -Vector2.UnitX * MovingSpeed;
+                    Velocity = -Vector2.UnitX * _movingSpeed;
                     break;
                 case Direction.None:
                     break;
@@ -122,7 +122,7 @@ namespace DungeonCrawler.GameObjects
             // Create vector from player to target coordinates
             Vector2 projectileTravelVector = Vector2.Subtract(targetCoordinates.ToVector2(), Position);
 
-            Projectile projectile = new Projectile((int)Position.X, (int)Position.Y, projectileTravelVector, ShootingSpeed, this);
+            Projectile projectile = new Projectile((int)Position.X, (int)Position.Y, projectileTravelVector, _projectileSpeed, this);
 
             Projectiles.Add(projectile);
         }
