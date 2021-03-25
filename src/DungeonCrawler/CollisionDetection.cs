@@ -2,10 +2,6 @@
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DungeonCrawler
 {
@@ -28,8 +24,8 @@ namespace DungeonCrawler
             Vector2 T = Vector2.Subtract(bP, aP);
 
             List<Vector2> testableAxes = new() { aX, aY, bX, bY };
-
-            foreach(Vector2 L in testableAxes)
+      
+            foreach (Vector2 L in testableAxes)
             {
                 float TdotL = Math.Abs(Vector2.Dot(T, L));
 
@@ -38,27 +34,41 @@ namespace DungeonCrawler
                 float proj3 = Math.Abs(Vector2.Dot(bW * bX, L));
                 float proj4 = Math.Abs(Vector2.Dot(bH * bY, L));
 
-                //Debug.WriteLine(TdotL);
-                //Debug.WriteLine(proj1);
-                //Debug.WriteLine(proj2);
-                //Debug.WriteLine(proj3);
-                //Debug.WriteLine(proj4);
-
                 // If true, separating axis was found
                 if (TdotL > proj1 + proj2 + proj3 + proj4)
                 {
-                    Debug.WriteLine("NO COLLISON!");
                     return false;
                 }
             }
-
-            Debug.WriteLine("COLLISON!");
+            
             return true;
+        }
+
+        public static List<GameObject> GetCollisions(GameObject gameObject, GameObject gameObjectTree)
+        {
+            var found = new List<GameObject>();
+            var stack = new Stack<GameObject>();
+
+            stack.Push(gameObjectTree);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+
+                if (IsThereCollision(gameObject, current) && gameObject.Id != current.Id)
+                {
+                    found.Add(current);
+                }
+
+                current.Children.ForEach(stack.Push);
+            }
+
+            return found;
         }
 
         private static Vector2 RotateVector(Vector2 v, double rotation)
         {
-            return new Vector2((float)(v.X * Math.Cos(rotation) - v.Y * Math.Sin(rotation)), (float)(v.X * Math.Sin(rotation) + v.Y * Math.Cos(rotation)));
+            return new((float)(v.X * Math.Cos(rotation) - v.Y * Math.Sin(rotation)), (float)(v.X * Math.Sin(rotation) + v.Y * Math.Cos(rotation)));
         }
     }
 }

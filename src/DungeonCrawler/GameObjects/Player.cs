@@ -10,14 +10,11 @@ using System.Threading.Tasks;
 
 namespace DungeonCrawler.GameObjects
 {
-    public enum Direction { Up, Right, Down, Left };
+    public enum Direction { None, Up, Right, Down, Left };
 
     public class Player : GameObject
     {
-        public override List<GameObject> Children
-        {
-            get => Projectiles.Cast<GameObject>().ToList();
-        }
+        public override List<GameObject> Children => Projectiles.Cast<GameObject>().ToList();
         public List<Projectile> Projectiles { get; set; }
         public int MovingSpeed { get; set; }
         public int ShootingSpeed { get; set; }
@@ -25,60 +22,99 @@ namespace DungeonCrawler.GameObjects
         public Player(int x, int y) : base(GameObjectType.Player, x, y, 10, 30)
         {
             Projectiles = new List<Projectile>();
-            MovingSpeed = 5;
-            ShootingSpeed = 1;
+            MovingSpeed = 1;
+            ShootingSpeed = 5;
         }
 
         public void Update(GameObject gameObjectTree)
         {
+            var mousePosition = Mouse.GetState().Position;
+
+            Turn(mousePosition);
+
             if (Keyboard.GetState().IsKeyDown(Keys.A))
             {
-                Move(Direction.Left);
+                Move(Direction.Left, gameObjectTree);
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.D))
             {
-                Move(Direction.Right);
+                Move(Direction.Right, gameObjectTree);
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.W))
             {
-                Move(Direction.Up);
+                Move(Direction.Up, gameObjectTree);
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.S))
             {
-                Move(Direction.Down);
+                Move(Direction.Down, gameObjectTree);
             }
 
             if (Mouse.GetState().LeftButton == ButtonState.Pressed)
             {
-                Shoot(Mouse.GetState().Position);  
+                Shoot(mousePosition);  
             }
 
-            foreach (Projectile projectile in Projectiles)
+            foreach (var projectile in Projectiles)
             {
-                projectile.Update();
+                projectile.Update(gameObjectTree);
             }
+
+            RemoveInactiveProjectiles();
         }
 
-        private void Move(Direction direction)
+        private void Move(Direction direction, GameObject gameObjectTree)
         {
+            Velocity = Vector2.Zero;
             switch (direction)
             {
                 case Direction.Up:
-                    Position.Y -= MovingSpeed;
+                    Velocity = -Vector2.UnitY * MovingSpeed;
                     break;
                 case Direction.Right:
-                    Position.X += MovingSpeed;
+                    Velocity = Vector2.UnitX * MovingSpeed;
                     break;
                 case Direction.Down:
-                    Position.Y += MovingSpeed;
+                    Velocity = Vector2.UnitY * MovingSpeed;
                     break;
                 case Direction.Left:
-                    Position.X -= MovingSpeed;
+                    Velocity = -Vector2.UnitX * MovingSpeed;
                     break;
+                case Direction.None:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
             }
+
+            Position += Velocity;
+
+            if (CheckCollisions(gameObjectTree))
+            {
+                Position -= Velocity;
+            }          
+        }
+
+        private bool CheckCollisions(GameObject gameObjectTree)
+        {
+            var collisions = CollisionDetection.GetCollisions(this, gameObjectTree);
+
+            foreach (var gameObject in collisions)
+            {
+                if (gameObject.Type == GameObjectType.Wall) return true;
+            }
+
+            return false;
+        }
+
+        private void Turn(Point target)
+        {
+            // Create vector from player to target coordinates
+            var (x, y) = Vector2.Subtract(target.ToVector2(), Position);
+
+            // Rotate player texture towards projectile target
+            Rotation = (float)Math.Atan2(y, x);
         }
 
         private void Shoot(Point targetCoordinates)
@@ -86,12 +122,20 @@ namespace DungeonCrawler.GameObjects
             // Create vector from player to target coordinates
             Vector2 projectileTravelVector = Vector2.Subtract(targetCoordinates.ToVector2(), Position);
 
-            // Rotate player texture towards projectile target
-            Rotation = (float)((float)Math.Atan2(projectileTravelVector.Y, projectileTravelVector.X));
-
-            Projectile projectile = new Projectile((int)Position.X, (int)Position.Y, projectileTravelVector, ShootingSpeed);
+            Projectile projectile = new Projectile((int)Position.X, (int)Position.Y, projectileTravelVector, ShootingSpeed, this);
 
             Projectiles.Add(projectile);
+        }
+
+        private void RemoveInactiveProjectiles()
+        {
+            for (var i = 0; i < Projectiles.Count; i++)
+            {
+                if (Projectiles[i].State == GameObjectState.Inactive)
+                {
+                    Projectiles.RemoveAt(i);
+                }
+            }
         }
     }
 }

@@ -11,6 +11,9 @@ namespace DungeonCrawler
 {
     public class Game1 : Game
     {
+        private const int WINDOW_WIDTH = 1280;
+        private const int WINDOW_HEIGHT = 720;
+
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Player _player;
@@ -27,11 +30,11 @@ namespace DungeonCrawler
 
         protected override void Initialize()
         {
-            // Set player position to middle of screen
-            int windowWidth = _graphics.GraphicsDevice.Viewport.Width;
-            int windowHeight = _graphics.GraphicsDevice.Viewport.Height;
+            _graphics.PreferredBackBufferWidth = WINDOW_WIDTH;
+            _graphics.PreferredBackBufferHeight = WINDOW_HEIGHT;
+            _graphics.ApplyChanges();
             _player = new Player(100, 100);
-            _room = new Room();
+            _room = new Room(WINDOW_WIDTH, WINDOW_HEIGHT);
 
             base.Initialize();
         }
@@ -63,7 +66,8 @@ namespace DungeonCrawler
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+                Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
             _player.Update(_room);
@@ -76,22 +80,31 @@ namespace DungeonCrawler
 
             _spriteBatch.Begin();
 
-            DrawObject(_player);
-            DrawObject(_room);
+            DrawObjectTree(_player);
+            DrawObjectTree(_room);
 
             _spriteBatch.End();
         }
 
-        private void DrawObject(GameObject gameObject)
+        private void DrawObjectTree(GameObject gameObject)
         {
-            var texture = _textures[gameObject.Type];
-            var scale = new Vector2((float)gameObject.Width / texture.Width, (float)gameObject.Height / texture.Height);
+            var stack = new Stack<GameObject>();
 
-            _spriteBatch.Draw(texture, gameObject.Position, null, Color.White, gameObject.Rotation, new Vector2(texture.Width / 2, texture.Height / 2), scale, SpriteEffects.None, 0);
+            stack.Push(gameObject);
 
-            foreach (var child in gameObject.Children)
+            while (stack.Count > 0)
             {
-                DrawObject(child);
+                var current = stack.Pop();
+                current.Children.ForEach(stack.Push);
+
+                if (current.Type == GameObjectType.Room ||
+                    current.State == GameObjectState.Inactive) continue;
+
+                var texture = _textures[current.Type];
+                var scale = new Vector2((float)current.Width / texture.Width, (float)current.Height / texture.Height);
+
+                _spriteBatch.Draw(texture, current.Position, null, Color.White, current.Rotation,
+                    new Vector2(texture.Width / 2, texture.Height / 2), scale, SpriteEffects.None, 0);
             }
         }
     }

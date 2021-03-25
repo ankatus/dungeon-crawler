@@ -1,37 +1,51 @@
-﻿using DungeonCrawler.GameObjects;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DungeonCrawler.GameObjects
 {
     public class Room : GameObject
     {
-        public override List<GameObject> Children
-        {
-            get => Walls.Cast<GameObject>().ToList()
+        private const int WALL_THICKNESS = 10;
+
+        public override List<GameObject> Children =>
+            Walls.Cast<GameObject>().ToList()
                 .Concat(
                     Enemies.Cast<GameObject>().ToList()
-                    ).ToList();
-        }
+                ).ToList();
 
         public List<Wall> Walls { get; set; }
         public List<Enemy> Enemies { get; set; }
 
-        public Room() : base(GameObjectType.Room, 0, 0, 0, 0)
+        public Room(int width, int height) : base(GameObjectType.Room, 0, 0, 0, 0)
         {
+            Width = width;
+            Height = height;
             Walls = new List<Wall>();
-            Enemies = new List<Enemy>();
-            Walls.Add(new Wall(200, 200, 100, 10));
-            Walls.Add(new Wall(200, 5, 100, 10));
-            Enemies.Add(new Enemy(300, 300, 20, 60));
+            Enemies = new List<Enemy>
+            {
+                new(300, 300, 20, 60)
+            };
+            CreateSurroundingWalls();
         }
 
         public void Update()
         {
             Enemies.ForEach(enemy => enemy.Update(this));
+        }
+
+        public void CreateSurroundingWalls()
+        {
+            // Top
+            Walls.Add(new Wall(Width / 2, WALL_THICKNESS / 2, Width, WALL_THICKNESS));
+            
+            // Bottom
+            Walls.Add(new Wall(Width / 2, Height - WALL_THICKNESS / 2, Width, WALL_THICKNESS));
+            
+            // Left
+            Walls.Add(new Wall(WALL_THICKNESS / 2, Height / 2, WALL_THICKNESS, Height));
+            
+            // Right
+            Walls.Add(new Wall(Width - WALL_THICKNESS  / 2, Height / 2, WALL_THICKNESS, Height));
         }
     }
 }
