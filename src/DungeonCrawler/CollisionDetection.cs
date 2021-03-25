@@ -13,112 +13,52 @@ namespace DungeonCrawler
     {
         public static bool IsThereCollision(GameObject a, GameObject b)
         {
-            bool collision = false;
+            Vector2 aP = a.Position;
+            Vector2 aX = RotateVector(Vector2.UnitX, a.Rotation);
+            Vector2 aY = RotateVector(Vector2.UnitY, a.Rotation);
+            float aW = (float)a.Width / 2;
+            float aH = (float)a.Height / 2;
 
-            double rotation = a.Rotation;
+            Vector2 bP = b.Position;
+            Vector2 bX = RotateVector(Vector2.UnitX, b.Rotation);
+            Vector2 bY = RotateVector(Vector2.UnitY, b.Rotation);
+            float bW = (float)b.Width / 2;
+            float bH = (float)b.Height / 2;
 
-            List<Vector2> a_axes = GetTestableAxes(a);
-            List<Vector2> b_axes = GetTestableAxes(b);
+            Vector2 T = Vector2.Subtract(bP, aP);
 
-            List<Vector2> a_edges = GetEdges(a);
-            List<Vector2> b_edges = GetEdges(b);
+            List<Vector2> testableAxes = new() { aX, aY, bX, bY };
 
-            List<Point> a_vertices = GetVertices(a);
-            List<Point> b_vertices = GetVertices(b);
-
-            foreach(Vector2 axle in a_axes)
+            foreach(Vector2 L in testableAxes)
             {
-                
+                float TdotL = Math.Abs(Vector2.Dot(T, L));
+
+                float proj1 = Math.Abs(Vector2.Dot(aW * aX, L));
+                float proj2 = Math.Abs(Vector2.Dot(aH * aY, L));
+                float proj3 = Math.Abs(Vector2.Dot(bW * bX, L));
+                float proj4 = Math.Abs(Vector2.Dot(bH * bY, L));
+
+                //Debug.WriteLine(TdotL);
+                //Debug.WriteLine(proj1);
+                //Debug.WriteLine(proj2);
+                //Debug.WriteLine(proj3);
+                //Debug.WriteLine(proj4);
+
+                // If true, separating axis was found
+                if (TdotL > proj1 + proj2 + proj3 + proj4)
+                {
+                    Debug.WriteLine("NO COLLISON!");
+                    return false;
+                }
             }
 
-            return collision;
+            Debug.WriteLine("COLLISON!");
+            return true;
         }
 
-        private static List<Point> GetVertices(GameObject a)
+        private static Vector2 RotateVector(Vector2 v, double rotation)
         {
-            double rotation = a.Rotation;
-
-            Point a_corner1_not_rotated = new Point((int)(a.Position.X + a.Width / 2), (int)(a.Position.Y + a.Height / 2));
-            Point a_corner2_not_rotated = new Point((int)(a.Position.X + a.Width / 2), (int)(a.Position.Y - a.Height / 2));
-            Point a_corner3_not_rotated = new Point((int)(a.Position.X - a.Width / 2), (int)(a.Position.Y - a.Height / 2));
-            Point a_corner4_not_rotated = new Point((int)(a.Position.X - a.Width / 2), (int)(a.Position.Y + a.Height / 2));
-            Point a_corner1_rotated = RotatePoint(a_corner1_not_rotated, a.Position.ToPoint(), rotation);
-            Point a_corner2_rotated = RotatePoint(a_corner2_not_rotated, a.Position.ToPoint(), rotation);
-            Point a_corner3_rotated = RotatePoint(a_corner3_not_rotated, a.Position.ToPoint(), rotation);
-            Point a_corner4_rotated = RotatePoint(a_corner4_not_rotated, a.Position.ToPoint(), rotation);
-
-            List<Point> test = new List<Point>();
-            test.Add(a_corner1_rotated);
-            test.Add(a_corner2_rotated);
-            test.Add(a_corner3_rotated);
-            test.Add(a_corner4_rotated);
-
-            return test;
-        }
-
-        private static List<Vector2> GetEdges(GameObject a)
-        {
-            double rotation = a.Rotation;
-
-            Point a_corner1_not_rotated = new Point((int)(a.Position.X + a.Width / 2), (int)(a.Position.Y + a.Height / 2));
-            Point a_corner2_not_rotated = new Point((int)(a.Position.X + a.Width / 2), (int)(a.Position.Y - a.Height / 2));
-            Point a_corner3_not_rotated = new Point((int)(a.Position.X - a.Width / 2), (int)(a.Position.Y - a.Height / 2));
-            Point a_corner4_not_rotated = new Point((int)(a.Position.X - a.Width / 2), (int)(a.Position.Y + a.Height / 2));
-            Point a_corner1_rotated = RotatePoint(a_corner1_not_rotated, a.Position.ToPoint(), rotation);
-            Point a_corner2_rotated = RotatePoint(a_corner2_not_rotated, a.Position.ToPoint(), rotation);
-            Point a_corner3_rotated = RotatePoint(a_corner3_not_rotated, a.Position.ToPoint(), rotation);
-            Point a_corner4_rotated = RotatePoint(a_corner4_not_rotated, a.Position.ToPoint(), rotation);
-
-            List<Vector2> test = new List<Vector2>();
-            test.Add(GetVectorBetweenPoints(a_corner1_rotated, a_corner2_rotated));
-            test.Add(GetVectorBetweenPoints(a_corner2_rotated, a_corner3_rotated));
-            test.Add(GetVectorBetweenPoints(a_corner3_rotated, a_corner4_rotated));
-            test.Add(GetVectorBetweenPoints(a_corner4_rotated, a_corner1_rotated));
-
-            return test;
-        }
-
-        private static List<Vector2> GetTestableAxes(GameObject a)
-        {
-            double rotation = a.Rotation;
-
-            Point a_corner1_not_rotated = new Point((int)(a.Position.X + a.Width / 2), (int)(a.Position.Y + a.Height / 2));
-            Point a_corner2_not_rotated = new Point((int)(a.Position.X + a.Width / 2), (int)(a.Position.Y - a.Height / 2));
-            Point a_corner3_not_rotated = new Point((int)(a.Position.X - a.Width / 2), (int)(a.Position.Y - a.Height / 2));
-            Point a_corner4_not_rotated = new Point((int)(a.Position.X - a.Width / 2), (int)(a.Position.Y + a.Height / 2));
-            Point a_corner1_rotated = RotatePoint(a_corner1_not_rotated, a.Position.ToPoint(), rotation);
-            Point a_corner2_rotated = RotatePoint(a_corner2_not_rotated, a.Position.ToPoint(), rotation);
-            Point a_corner3_rotated = RotatePoint(a_corner3_not_rotated, a.Position.ToPoint(), rotation);
-            Point a_corner4_rotated = RotatePoint(a_corner4_not_rotated, a.Position.ToPoint(), rotation);
-
-            Vector2 a_axis1 = GetPerpendicularVector(GetVectorBetweenPoints(a_corner1_rotated, a_corner2_rotated));
-            Vector2 a_axis2 = GetPerpendicularVector(GetVectorBetweenPoints(a_corner2_rotated, a_corner3_rotated));
-
-            a_axis1.Normalize();
-            a_axis2.Normalize();
-
-            return new List<Vector2>() { a_axis1, a_axis2 };
-        }
-
-        private static Point RotatePoint(Point p, Point center, double rotation)
-        {
-            float tempX = p.X - center.X;
-            float tempY = p.Y - center.Y;
-
-            float rotatedX = (float)(tempX * Math.Cos(rotation) - tempY * Math.Sin(rotation));
-            float rotatedY = (float)(tempX * Math.Sin(rotation) + tempY * Math.Cos(rotation));
-
-            return new Point((int)(rotatedX + center.X), (int)(rotatedY + center.Y));
-        }
-
-        private static Vector2 GetPerpendicularVector(Vector2 v)
-        {
-            return new Vector2(-v.Y, v.X);
-        }
-
-        private static Vector2 GetVectorBetweenPoints(Point a, Point b)
-        {
-            return new Vector2((float)a.X - b.X, (float)a.Y - b.Y);
+            return new Vector2((float)(v.X * Math.Cos(rotation) - v.Y * Math.Sin(rotation)), (float)(v.X * Math.Sin(rotation) + v.Y * Math.Cos(rotation)));
         }
     }
 }
