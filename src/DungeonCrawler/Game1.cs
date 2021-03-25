@@ -14,11 +14,10 @@ namespace DungeonCrawler
         private const int WINDOW_WIDTH = 1280;
         private const int WINDOW_HEIGHT = 720;
 
-        private GraphicsDeviceManager _graphics;
+        private readonly GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        private Player _player;
-        private Room _room;
-        private Dictionary<GameObjectType, Texture2D> _textures;
+        private GameMap _map;
+        private readonly Dictionary<GameObjectType, Texture2D> _textures;
 
         public Game1()
         {
@@ -33,8 +32,7 @@ namespace DungeonCrawler
             _graphics.PreferredBackBufferWidth = WINDOW_WIDTH;
             _graphics.PreferredBackBufferHeight = WINDOW_HEIGHT;
             _graphics.ApplyChanges();
-            _player = new Player(100, 100);
-            _room = new Room(WINDOW_WIDTH, WINDOW_HEIGHT);
+            _map = new GameMap();
 
             base.Initialize();
         }
@@ -70,24 +68,63 @@ namespace DungeonCrawler
                 Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            _player.Update(_room);
-            _room.Update();
+            if (Keyboard.GetState().IsKeyDown(Keys.Add))
+            {
+                // Zoom camera in
+                _map.Camera.Width = (int) Math.Floor(_map.Camera.Width * 0.99);
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Subtract))
+            {
+                // Zoom camera out
+                _map.Camera.Width = (int) Math.Ceiling(_map.Camera.Width * 1.01);
+            }
+            
+            if (Keyboard.GetState().IsKeyDown(Keys.Add))
+            {
+                // Zoom camera in
+                _map.Camera.Width = (int) Math.Floor(_map.Camera.Width * 0.99);
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Subtract))
+            {
+                // Zoom camera out
+                _map.Camera.Width = (int) Math.Ceiling(_map.Camera.Width * 1.01);
+            }
+
+            _map.Player.Update(_map.CurrentRoom);
+            _map.CurrentRoom.Update();
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            _spriteBatch.Begin();
+            _spriteBatch.Begin(samplerState: SamplerState.LinearWrap);
 
-            DrawObjectTree(_player);
-            DrawObjectTree(_room);
+            Vector2 offset;
+            for (var y = 0; y < GameMap.VerticalRooms; y++)
+            {
+                for (var x = 0; x < GameMap.HorizontalRooms; x++)
+                {
+                    offset = new Vector2(x * GameMap.RoomWidth, y * GameMap.RoomHeight);
+                    DrawObjectTree(_map.Rooms[y, x], offset);
+                }
+            }
+
+            offset = new Vector2(_map.CurrentRoomCoords.x * GameMap.RoomWidth,
+                _map.CurrentRoomCoords.y * GameMap.RoomHeight);
+
+            DrawObjectTree(_map.Player, offset);
 
             _spriteBatch.End();
         }
 
-        private void DrawObjectTree(GameObject gameObject)
+        private void DrawObjectTree(GameObject gameObject, Vector2 offset)
         {
+            // Calculate pixel/coordinate unit ratio
+            var pixelsPerUnit = (float) WINDOW_WIDTH / _map.Camera.Width;
+
             var stack = new Stack<GameObject>();
 
             stack.Push(gameObject);
@@ -97,14 +134,23 @@ namespace DungeonCrawler
                 var current = stack.Pop();
                 current.Children.ForEach(stack.Push);
 
-                if (current.Type == GameObjectType.Room ||
+                if (!_map.Camera.IsObjectVisible(current) ||
+                    current.Type == GameObjectType.Room ||
                     current.State == GameObjectState.Inactive) continue;
 
                 var texture = _textures[current.Type];
-                var scale = new Vector2((float)current.Width / texture.Width, (float)current.Height / texture.Height);
-
-                _spriteBatch.Draw(texture, current.Position, null, Color.White, current.Rotation,
-                    new Vector2(texture.Width / 2, texture.Height / 2), scale, SpriteEffects.None, 0);
+                var scale = new Vector2((float) current.Width * pixelsPerUnit / texture.Width, (float) current.Height * pixelsPerUnit / texture.Height);
+                
+                if (current.Type == GameObjectType.Wall)
+                {
+                    _spriteBatch.Draw(texture, (current.Position + offset) * pixelsPerUnit, new Rectangle(0, 0, current.Width, current.Height), Color.White, current.Rotation,
+                        new Vector2(current.Width / 2, current.Height / 2), 1 * pixelsPerUnit, SpriteEffects.None, 0);
+                }
+                else
+                {
+                    _spriteBatch.Draw(texture, (current.Position + offset) * pixelsPerUnit, null, Color.White, current.Rotation,
+                        new Vector2(texture.Width / 2, texture.Height / 2), scale, SpriteEffects.None, 0);
+                }
             }
         }
     }
