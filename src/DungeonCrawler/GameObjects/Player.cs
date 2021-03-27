@@ -32,30 +32,15 @@ namespace DungeonCrawler.GameObjects
 
             Turn(mousePosition, gameObjectTree);
 
-            if (Keyboard.GetState().IsKeyDown(Keys.A))
-            {
-                Move(Direction.Left, gameObjectTree);
-            }
+            if (InputHandler.Inputs[InputHandler.InputName.Up].IsActivated()) Move(Direction.Up, gameObjectTree);
 
-            if (Keyboard.GetState().IsKeyDown(Keys.D))
-            {
-                Move(Direction.Right, gameObjectTree);
-            }
+            if (InputHandler.Inputs[InputHandler.InputName.Left].IsActivated()) Move(Direction.Left, gameObjectTree);
 
-            if (Keyboard.GetState().IsKeyDown(Keys.W))
-            {
-                Move(Direction.Up, gameObjectTree);
-            }
+            if (InputHandler.Inputs[InputHandler.InputName.Down].IsActivated()) Move(Direction.Down, gameObjectTree);
 
-            if (Keyboard.GetState().IsKeyDown(Keys.S))
-            {
-                Move(Direction.Down, gameObjectTree);
-            }
+            if (InputHandler.Inputs[InputHandler.InputName.Right].IsActivated()) Move(Direction.Right, gameObjectTree);
 
-            if (Mouse.GetState().LeftButton == ButtonState.Pressed)
-            {
-                Shoot(mousePosition);
-            }
+            if (InputHandler.Inputs[InputHandler.InputName.Shoot].IsActivated()) Shoot(mousePosition);
 
             foreach (var projectile in Projectiles)
             {
