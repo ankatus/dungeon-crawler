@@ -30,7 +30,7 @@ namespace DungeonCrawler.GameObjects
         {
             var mousePosition = Mouse.GetState().Position;
 
-            Turn(mousePosition);
+            Turn(mousePosition, gameObjectTree);
 
             if (Keyboard.GetState().IsKeyDown(Keys.A))
             {
@@ -54,7 +54,7 @@ namespace DungeonCrawler.GameObjects
 
             if (Mouse.GetState().LeftButton == ButtonState.Pressed)
             {
-                Shoot(mousePosition);  
+                Shoot(mousePosition);
             }
 
             foreach (var projectile in Projectiles)
@@ -90,17 +90,18 @@ namespace DungeonCrawler.GameObjects
 
             Position += Velocity;
 
-            if (CheckCollisions(gameObjectTree))
+            // If overlapping, move back until not overlapping
+            while (CheckOverlaps(gameObjectTree))
             {
-                Position -= Velocity;
-            }          
+                Position -= Velocity / _movingSpeed;
+            }
         }
 
-        private bool CheckCollisions(GameObject gameObjectTree)
+        private bool CheckOverlaps(GameObject gameObjectTree)
         {
-            var collisions = CollisionDetection.GetCollisions(this, gameObjectTree);
+            var overlaps = CollisionDetection.GetOverlaps(this, gameObjectTree);
 
-            foreach (var gameObject in collisions)
+            foreach (var gameObject in overlaps)
             {
                 if (gameObject.Type == GameObjectType.Wall) return true;
             }
@@ -108,13 +109,21 @@ namespace DungeonCrawler.GameObjects
             return false;
         }
 
-        private void Turn(Point target)
+        private void Turn(Point target, GameObject gameObjectTree)
         {
             // Create vector from player to target coordinates
             var (x, y) = Vector2.Subtract(target.ToVector2(), Position);
 
-            // Rotate player texture towards projectile target
+            float previousRotation = Rotation;
+
+            // Rotate towards target
             Rotation = (float)Math.Atan2(y, x);
+
+            // If there is overlap after rotation, undo rotation
+            if (CheckOverlaps(gameObjectTree))
+            {
+                Rotation = previousRotation;
+            }
         }
 
         private void Shoot(Point targetCoordinates)
