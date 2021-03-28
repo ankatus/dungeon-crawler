@@ -60,7 +60,7 @@ namespace DungeonCrawler
                     found.Add(current);
                 }
 
-                current.Children.ForEach(stack.Push);
+                current.GameObjectChildren.ForEach(stack.Push);
             }
 
             return found;
@@ -119,7 +119,7 @@ namespace DungeonCrawler
                     found.Add(current);
                 }
 
-                current.Children.ForEach(stack.Push);
+                current.GameObjectChildren.ForEach(stack.Push);
             }
 
             return found;

@@ -3,42 +3,45 @@ using System.Collections.Generic;
 
 namespace DungeonCrawler.GameObjects
 {
-    public enum GameObjectType
-    {
-        Room,
-        Player,
-        DefaultProjectile,
-        Wall,
-        Enemy
-    };
-
-    public enum GameObjectState
+    public enum Status
     {
         Active,
         Inactive
     };
 
-    public abstract class GameObject
+    public abstract class GameObject : Drawable
     {
         private static long _lastId;
         public long Id { get; }
-        public GameObjectType Type { get; set; }
-        public GameObjectState State { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
-        public float Rotation { get; set; }
-        public virtual List<GameObject> Children { get; }
-        public Vector2 Position;
         public Vector2 Velocity;
+        private Status _status;
+        public Status Status
+        {
+            get
+            {
+                return _status;
+            }
+            set
+            {
+                _status = value;
 
-        protected GameObject(GameObjectType type, int x, int y, int width, int height)
+                if (_status == Status.Active)
+                {
+                    DrawThis = true;
+                }
+                else if (_status == Status.Inactive)
+                {
+                    DrawThis = false;
+                }
+            }
+        }
+        public virtual List<GameObject> GameObjectChildren { get; }
+
+        protected GameObject(ObjectType textureID, int x, int y, int width, int height) : base(textureID, x, y, width, height)
         {
             Id = _lastId++;
-            Type = type;
-            Position = new Vector2(x, y);
-            Width = width;
-            Height = height;
-            Children = new List<GameObject>();
+            Status = Status.Active;
+            GameObjectChildren = new List<GameObject>();
         }
     }
 }

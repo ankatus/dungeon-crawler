@@ -34,7 +34,7 @@ namespace DungeonCrawler
 
         public Point TopLeft;
 
-        public bool IsObjectVisible(GameObject gameObject)
+        public bool IsObjectVisible(Drawable gameObject)
         {
             // TODO: Implement
             return true;

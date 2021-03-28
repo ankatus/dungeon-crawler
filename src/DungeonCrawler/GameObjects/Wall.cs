@@ -8,6 +8,6 @@ namespace DungeonCrawler.GameObjects
 {
     public class Wall : GameObject
     {
-        public Wall(int x, int y, int width, int height) : base(GameObjectType.Wall, x, y, width, height) { }
+        public Wall(int x, int y, int width, int height) : base(ObjectType.Wall, x, y, width, height) { }
     }
 }
