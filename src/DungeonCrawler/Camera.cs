@@ -10,6 +10,8 @@ namespace DungeonCrawler
         private int _height;
         private const float ASPECT_RATIO = 16f / 9f;
 
+        public float AspectRatio => ASPECT_RATIO;
+
         public int Width
         {
             get => _width;
@@ -36,6 +38,20 @@ namespace DungeonCrawler
         {
             // TODO: Implement
             return true;
+        }
+
+        public void ZoomTo(Point topLeft, int targetWidth, int targetHeight)
+        {
+            TopLeft = topLeft;
+
+            if (ASPECT_RATIO > 1.0f)
+            {
+                Height = targetHeight;
+            }
+            else
+            {
+                Width = targetWidth;
+            }
         }
     }
 }
