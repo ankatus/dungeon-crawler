@@ -16,8 +16,10 @@ namespace DungeonCrawler
 
         private readonly GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        private GameMap _map;
         private readonly Dictionary<GameObjectType, Texture2D> _textures;
+        private GameMap _map;
+        private Player _player;
+        private Camera _camera;
 
         public Game1()
         {
@@ -33,6 +35,12 @@ namespace DungeonCrawler
             _graphics.PreferredBackBufferHeight = WINDOW_HEIGHT;
             _graphics.ApplyChanges();
             _map = new GameMap();
+            _camera = new Camera()
+            {
+                Width = GameMap.HorizontalRooms * GameMap.RoomWidth,
+                TopLeft = new Point(0, 0),
+            };
+            _player = new Player(100, 100);
 
             base.Initialize();
         }
@@ -41,7 +49,7 @@ namespace DungeonCrawler
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            foreach (string name in Enum.GetNames(typeof(GameObjectType)))
+            foreach (var name in Enum.GetNames(typeof(GameObjectType)))
             {
                 Texture2D texture;
                 try
@@ -71,28 +79,18 @@ namespace DungeonCrawler
             if (Keyboard.GetState().IsKeyDown(Keys.Add))
             {
                 // Zoom camera in
-                _map.Camera.Width = (int) Math.Floor(_map.Camera.Width * 0.99);
+                _camera.Width = (int) Math.Floor(_camera.Width * 0.99);
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Subtract))
             {
                 // Zoom camera out
-                _map.Camera.Width = (int) Math.Ceiling(_map.Camera.Width * 1.01);
-            }
-            
-            if (Keyboard.GetState().IsKeyDown(Keys.Add))
-            {
-                // Zoom camera in
-                _map.Camera.Width = (int) Math.Floor(_map.Camera.Width * 0.99);
+                _camera.Width = (int) Math.Ceiling(_camera.Width * 1.01);
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Subtract))
-            {
-                // Zoom camera out
-                _map.Camera.Width = (int) Math.Ceiling(_map.Camera.Width * 1.01);
-            }
+            var playerNewRotation = GetAngleFromPlayerToCursor();
 
-            _map.Player.Update(_map.CurrentRoom);
+            _player.Update(playerNewRotation, _map.CurrentRoom);
             _map.CurrentRoom.Update();
         }
 
@@ -115,7 +113,7 @@ namespace DungeonCrawler
             offset = new Vector2(_map.CurrentRoomCoords.x * GameMap.RoomWidth,
                 _map.CurrentRoomCoords.y * GameMap.RoomHeight);
 
-            DrawObjectTree(_map.Player, offset);
+            DrawObjectTree(_player, offset);
 
             _spriteBatch.End();
         }
@@ -123,7 +121,7 @@ namespace DungeonCrawler
         private void DrawObjectTree(GameObject gameObject, Vector2 offset)
         {
             // Calculate pixel/coordinate unit ratio
-            var pixelsPerUnit = (float) WINDOW_WIDTH / _map.Camera.Width;
+            var pixelsPerUnit = (float) WINDOW_WIDTH / _camera.Width;
 
             var stack = new Stack<GameObject>();
 
@@ -134,12 +132,12 @@ namespace DungeonCrawler
                 var current = stack.Pop();
                 current.Children.ForEach(stack.Push);
 
-                if (!_map.Camera.IsObjectVisible(current) ||
+                if (!_camera.IsObjectVisible(current) ||
                     current.Type == GameObjectType.Room ||
                     current.State == GameObjectState.Inactive) continue;
 
                 var texture = _textures[current.Type];
-                var scale = new Vector2((float) current.Width * pixelsPerUnit / texture.Width, (float) current.Height * pixelsPerUnit / texture.Height);
+                var scale = new Vector2(current.Width * pixelsPerUnit / texture.Width, current.Height * pixelsPerUnit / texture.Height);
                 
                 if (current.Type == GameObjectType.Wall)
                 {
@@ -152,6 +150,29 @@ namespace DungeonCrawler
                         new Vector2(texture.Width / 2, texture.Height / 2), scale, SpriteEffects.None, 0);
                 }
             }
+        }
+
+        private float GetAngleFromPlayerToCursor()
+        {
+            // Translate player position to screen space coordinates
+            var pixelsPerUnit = (float) WINDOW_WIDTH / _camera.Width;
+
+            (int x, int y) playerGlobalPosition = ((int)_player.Position.X + _map.CurrentRoomCoords.x * GameMap.RoomWidth,
+                (int)_player.Position.Y + _map.CurrentRoomCoords.y * GameMap.RoomHeight);
+
+            (int x, int y) playerCameraRelativePosition = (playerGlobalPosition.x - _camera.TopLeft.X, playerGlobalPosition.y - _camera.TopLeft.Y);
+
+            var playerScreenSpacePosition = new Vector2(playerCameraRelativePosition.x * pixelsPerUnit,
+                playerCameraRelativePosition.y * pixelsPerUnit);
+
+            // Calculate rotation needed to face current cursor position
+            // Create vector from player to target coordinates
+            var target = Mouse.GetState().Position;
+            var (x, y) = Vector2.Subtract(target.ToVector2(), playerScreenSpacePosition);
+            
+            var rotation = (float)Math.Atan2(y, x);
+
+            return rotation;
         }
     }
 }

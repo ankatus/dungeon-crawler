@@ -12,8 +12,6 @@ namespace DungeonCrawler
         public const int RoomHeight = 500;
 
         public Room[,] Rooms { get; }
-        public Camera Camera { get; }
-        public Player Player { get; }
         public (int x, int y) CurrentRoomCoords { get; }
         public Room CurrentRoom => Rooms[CurrentRoomCoords.y, CurrentRoomCoords.x];
 
@@ -28,15 +26,7 @@ namespace DungeonCrawler
                 }
             }
 
-            Camera = new Camera()
-            {
-                Width = HorizontalRooms * RoomWidth,
-                TopLeft = new Point(0, 0),
-            };
-
             CurrentRoomCoords = (0, 0);
-
-            Player = new Player(100, 100);
         }
     }
 }

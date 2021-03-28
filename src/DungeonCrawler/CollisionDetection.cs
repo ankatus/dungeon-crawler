@@ -125,7 +125,7 @@ namespace DungeonCrawler
             return found;
         }
 
-        private static Vector2 RotateVector(Vector2 v, double rotation)
+        public static Vector2 RotateVector(Vector2 v, double rotation)
         {
             return new((float)(v.X * Math.Cos(rotation) - v.Y * Math.Sin(rotation)), (float)(v.X * Math.Sin(rotation) + v.Y * Math.Cos(rotation)));
         }

@@ -16,8 +16,8 @@ namespace DungeonCrawler.GameObjects
     {
         public override List<GameObject> Children => Projectiles.Cast<GameObject>().ToList();
         public List<Projectile> Projectiles { get; set; }
-        private int _movingSpeed;
-        private int _projectileSpeed;
+        private readonly int _movingSpeed;
+        private readonly int _projectileSpeed;
 
         public Player(int x, int y) : base(GameObjectType.Player, x, y, 10, 30)
         {
@@ -26,11 +26,9 @@ namespace DungeonCrawler.GameObjects
             _projectileSpeed = 5;
         }
 
-        public void Update(GameObject gameObjectTree)
+        public void Update(float newFacing, GameObject gameObjectTree)
         {
-            var mousePosition = Mouse.GetState().Position;
-
-            Turn(mousePosition, gameObjectTree);
+            Turn(newFacing, gameObjectTree);
 
             if (InputHandler.Inputs[InputHandler.InputName.Up].IsActivated()) Move(Direction.Up, gameObjectTree);
 
@@ -40,7 +38,7 @@ namespace DungeonCrawler.GameObjects
 
             if (InputHandler.Inputs[InputHandler.InputName.Right].IsActivated()) Move(Direction.Right, gameObjectTree);
 
-            if (InputHandler.Inputs[InputHandler.InputName.Shoot].IsActivated()) Shoot(mousePosition);
+            if (InputHandler.Inputs[InputHandler.InputName.Shoot].IsActivated()) Shoot();
 
             foreach (var projectile in Projectiles)
             {
@@ -94,15 +92,12 @@ namespace DungeonCrawler.GameObjects
             return false;
         }
 
-        private void Turn(Point target, GameObject gameObjectTree)
+        private void Turn(float newRotation, GameObject gameObjectTree)
         {
-            // Create vector from player to target coordinates
-            var (x, y) = Vector2.Subtract(target.ToVector2(), Position);
-
             float previousRotation = Rotation;
 
             // Rotate towards target
-            Rotation = (float)Math.Atan2(y, x);
+            Rotation = newRotation;
 
             // If there is overlap after rotation, undo rotation
             if (CheckOverlaps(gameObjectTree))
@@ -111,10 +106,10 @@ namespace DungeonCrawler.GameObjects
             }
         }
 
-        private void Shoot(Point targetCoordinates)
+        private void Shoot()
         {
             // Create vector from player to target coordinates
-            Vector2 projectileTravelVector = Vector2.Subtract(targetCoordinates.ToVector2(), Position);
+            Vector2 projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
 
             Projectile projectile = new Projectile((int)Position.X, (int)Position.Y, projectileTravelVector, _projectileSpeed, this);
 
