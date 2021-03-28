@@ -1,21 +1,31 @@
 ﻿using Microsoft.Xna.Framework.Input;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DungeonCrawler
 {
     public static class InputHandler
     {
-        public enum InputName { None, Up, Left, Down, Right, Shoot };
-        public enum MouseButton { None, LeftButton, RightButton };
+        public enum InputName
+        {
+            None,
+            Up,
+            Left,
+            Down,
+            Right,
+            Shoot
+        };
+
+        public enum MouseButton
+        {
+            None,
+            LeftButton,
+            RightButton
+        };
 
         public class Input
         {
-            private Keys _key;
-            private MouseButton _mouseButton;
+            private readonly Keys _key;
+            private readonly MouseButton _mouseButton;
 
             public Input(Keys key)
             {
@@ -36,18 +46,12 @@ namespace DungeonCrawler
                     return Keyboard.GetState().IsKeyDown(_key);
                 }
 
-                if (_mouseButton != MouseButton.None)
+                return _mouseButton switch
                 {
-                    switch (_mouseButton)
-                    {
-                        case MouseButton.LeftButton:
-                            return Mouse.GetState().LeftButton == ButtonState.Pressed;
-                        case MouseButton.RightButton:
-                            return Mouse.GetState().RightButton == ButtonState.Pressed;
-                    }
-                }
-
-                return false;
+                    MouseButton.LeftButton => Mouse.GetState().LeftButton == ButtonState.Pressed,
+                    MouseButton.RightButton => Mouse.GetState().RightButton == ButtonState.Pressed,
+                    _ => false
+                };
             }
         }
 
@@ -55,13 +59,14 @@ namespace DungeonCrawler
 
         static InputHandler()
         {
-            Inputs = new Dictionary<InputName, Input>();
-
-            Inputs.Add(InputName.Up, new Input(Keys.W));
-            Inputs.Add(InputName.Left, new Input(Keys.A));
-            Inputs.Add(InputName.Down, new Input(Keys.S));
-            Inputs.Add(InputName.Right, new Input(Keys.D));
-            Inputs.Add(InputName.Shoot, new Input(MouseButton.LeftButton));
+            Inputs = new Dictionary<InputName, Input>
+            {
+                {InputName.Up, new Input(Keys.W)},
+                {InputName.Left, new Input(Keys.A)},
+                {InputName.Down, new Input(Keys.S)},
+                {InputName.Right, new Input(Keys.D)},
+                {InputName.Shoot, new Input(MouseButton.LeftButton)}
+            };
         }
     }
 }
