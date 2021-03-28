@@ -30,7 +30,7 @@ namespace DungeonCrawler
             }
         }
 
-        public Point TopLeft { get;set; }
+        public Point TopLeft;
 
         public bool IsObjectVisible(GameObject gameObject)
         {

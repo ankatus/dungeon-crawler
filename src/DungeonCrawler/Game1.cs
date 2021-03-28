@@ -88,6 +88,23 @@ namespace DungeonCrawler
                 _camera.Width = (int) Math.Ceiling(_camera.Width * 1.01);
             }
 
+            if (Keyboard.GetState().IsKeyDown(Keys.Right))
+            {
+                _camera.TopLeft.X++;
+            }            
+            if (Keyboard.GetState().IsKeyDown(Keys.Down))
+            {
+                _camera.TopLeft.Y++;
+            }            
+            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+            {
+                _camera.TopLeft.X--;
+            }            
+            if (Keyboard.GetState().IsKeyDown(Keys.Up))
+            {
+                _camera.TopLeft.Y--;
+            }
+
             var playerNewRotation = GetAngleFromPlayerToCursor();
 
             _player.Update(playerNewRotation, _map.CurrentRoom);
@@ -138,15 +155,16 @@ namespace DungeonCrawler
 
                 var texture = _textures[current.Type];
                 var scale = new Vector2(current.Width * pixelsPerUnit / texture.Width, current.Height * pixelsPerUnit / texture.Height);
-                
+                var cameraPosition = new Vector2(_camera.TopLeft.X, _camera.TopLeft.Y);
+
                 if (current.Type == GameObjectType.Wall)
                 {
-                    _spriteBatch.Draw(texture, (current.Position + offset) * pixelsPerUnit, new Rectangle(0, 0, current.Width, current.Height), Color.White, current.Rotation,
+                    _spriteBatch.Draw(texture, (current.Position + offset- cameraPosition) * pixelsPerUnit, new Rectangle(0, 0, current.Width, current.Height), Color.White, current.Rotation,
                         new Vector2(current.Width / 2, current.Height / 2), 1 * pixelsPerUnit, SpriteEffects.None, 0);
                 }
                 else
                 {
-                    _spriteBatch.Draw(texture, (current.Position + offset) * pixelsPerUnit, null, Color.White, current.Rotation,
+                    _spriteBatch.Draw(texture, (current.Position + offset- cameraPosition) * pixelsPerUnit, null, Color.White, current.Rotation,
                         new Vector2(texture.Width / 2, texture.Height / 2), scale, SpriteEffects.None, 0);
                 }
             }
