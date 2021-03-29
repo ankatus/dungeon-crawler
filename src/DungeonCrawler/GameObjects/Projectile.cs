@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
@@ -14,7 +14,7 @@ namespace DungeonCrawler.GameObjects
         {
             Velocity = Vector2.Normalize(travelVector) * speed;
 
-            Rotation = (float) Math.Atan2(Velocity.Y, Velocity.X);
+            Rotation = (float)Math.Atan2(Velocity.Y, Velocity.X);
 
             Source = source;
             Damage = 1;

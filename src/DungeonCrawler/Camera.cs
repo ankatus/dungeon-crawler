@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using DungeonCrawler.GameObjects;
 using Microsoft.Xna.Framework;
 
