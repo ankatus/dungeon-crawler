@@ -26,7 +26,7 @@ namespace DungeonCrawler
         public int Height { get; set; }
         public float Rotation { get; set; }
         public virtual List<Drawable> DrawableChildren { get; }
-       
+
 
         protected Drawable(ObjectType type, int x, int y, int width, int height)
         {
