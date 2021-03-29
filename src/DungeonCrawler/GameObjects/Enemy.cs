@@ -12,7 +12,7 @@ namespace DungeonCrawler.GameObjects
         private int _health;
         private float _movingSpeed;
 
-        public Enemy(int x, int y, int width, int height) : base(ObjectType.Enemy, x, y, width, height)
+        public Enemy(int x, int y, int width, int height) : base(x, y, width, height)
         {
             _health = 10;
             _movingSpeed = 0.5F;
@@ -21,9 +21,9 @@ namespace DungeonCrawler.GameObjects
         public void Update(GameObject gameObjectTree)
         {
             // Does not work yet because player does not exist in gameObjectTree
-            foreach (var gameObject in gameObjectTree.GameObjectChildren)
+            foreach (var gameObject in gameObjectTree.Children)
             {
-                if (gameObject.Type == ObjectType.Player)
+                if (gameObject is Player)
                 {
                     MoveTowardsPlayer((Player)gameObject);
                 }

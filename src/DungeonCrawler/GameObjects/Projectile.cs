@@ -9,8 +9,7 @@ namespace DungeonCrawler.GameObjects
         public GameObject Source { get; }
         public int Damage { get; set; }
 
-        public Projectile(int x, int y, Vector2 travelVector, int speed, GameObject source) : base(
-            ObjectType.DefaultProjectile, x, y, 6, 2)
+        public Projectile(int x, int y, Vector2 travelVector, int speed, GameObject source) : base(x, y, 6, 2)
         {
             Velocity = Vector2.Normalize(travelVector) * speed;
 
@@ -31,15 +30,15 @@ namespace DungeonCrawler.GameObjects
                 if (gameObject.Id == Source.Id)
                     continue;
 
-                if (gameObject.Type == ObjectType.Wall)
+                if (gameObject is Wall)
                 {
                     Status = Status.Inactive;
                 }
-                else if (gameObject.Type == ObjectType.Enemy)
+                else if (gameObject is Enemy)
                 {
                     ((Enemy)gameObject).ProjectileCollision(this);
                 }
-                else if (gameObject.Type == ObjectType.Player)
+                else if (gameObject is Player)
                 {
                     // Do stuff
                 }

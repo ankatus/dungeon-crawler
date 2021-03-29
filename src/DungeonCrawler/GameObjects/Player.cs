@@ -14,14 +14,13 @@ namespace DungeonCrawler.GameObjects
 
     public class Player : GameObject
     {
-        public override List<GameObject> GameObjectChildren => Projectiles.Cast<GameObject>().ToList();
-        public override List<Drawable> DrawableChildren => Projectiles.Cast<Drawable>().ToList();
+        public override List<GameObject> Children => Projectiles.Cast<GameObject>().ToList();
 
         public List<Projectile> Projectiles { get; set; }
         private readonly int _movingSpeed;
         private readonly int _projectileSpeed;
 
-        public Player(int x, int y) : base(ObjectType.Player, x, y, 10, 30)
+        public Player(int x, int y) : base(x, y, 10, 30)
         {
             Projectiles = new List<Projectile>();
             _movingSpeed = 3;
@@ -88,7 +87,7 @@ namespace DungeonCrawler.GameObjects
 
             foreach (var gameObject in overlaps)
             {
-                if (gameObject.Type == ObjectType.Wall) return true;
+                if (gameObject is Wall) return true;
             }
 
             return false;

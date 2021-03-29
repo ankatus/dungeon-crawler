@@ -7,13 +7,7 @@ namespace DungeonCrawler.GameObjects
     {
         private const int WALL_THICKNESS = 10;
 
-        public override List<Drawable> DrawableChildren =>
-            Walls.Cast<Drawable>().ToList()
-                .Concat(
-                    Enemies.Cast<Drawable>().ToList()
-                ).ToList();
-
-        public override List<GameObject> GameObjectChildren =>
+        public override List<GameObject> Children =>
             Walls.Cast<GameObject>().ToList()
                 .Concat(
                     Enemies.Cast<GameObject>().ToList()
@@ -22,7 +16,7 @@ namespace DungeonCrawler.GameObjects
         public List<Wall> Walls { get; set; }
         public List<Enemy> Enemies { get; set; }
 
-        public Room(int width, int height) : base(ObjectType.Room, 0, 0, 0, 0)
+        public Room(int width, int height) : base(0, 0, 0, 0)
         {
             Width = width;
             Height = height;

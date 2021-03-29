@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace DungeonCrawler
 {
-    public enum ObjectType
+    public enum TextureID
     {
+        Default,
         Room,
         Player,
         DefaultProjectile,
@@ -17,25 +18,13 @@ namespace DungeonCrawler
         ButtonBackground
     };
 
-    public abstract class Drawable
+    public class Drawable
     {
-        public ObjectType Type { get; }
-        public bool DrawThis { get; set; }
-        public Vector2 Position;
-        public int Width { get; set; }
-        public int Height { get; set; }
-        public float Rotation { get; set; }
-        public virtual List<Drawable> DrawableChildren { get; }
-
-
-        protected Drawable(ObjectType type, int x, int y, int width, int height)
-        {
-            Type = type;
-            Position = new Vector2(x, y);
-            Width = width;
-            Height = height;
-            DrawableChildren = new List<Drawable>();
-            DrawThis = true;
-        }
+        public TextureID TextureID { get; init; }
+        public bool DrawThis { get; init; }
+        public Vector2 Position { get; init; }
+        public int Width { get; init; }
+        public int Height { get; init; }
+        public float Rotation { get; init; }
     }
 }
