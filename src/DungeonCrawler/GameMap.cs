@@ -22,7 +22,7 @@ namespace DungeonCrawler
             {
                 for (var x = 0; x < HorizontalRooms; x++)
                 {
-                    Rooms[y, x] = new Room(RoomWidth, RoomHeight);
+                    Rooms[y, x] = new Room(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth, RoomHeight);
                 }
             }
 

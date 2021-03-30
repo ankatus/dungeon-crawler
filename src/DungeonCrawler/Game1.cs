@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using System.Diagnostics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DungeonCrawler.GameObjects;
 
 namespace DungeonCrawler
@@ -52,13 +53,13 @@ namespace DungeonCrawler
             if (Keyboard.GetState().IsKeyDown(Keys.Add))
             {
                 // Zoom camera in
-                Camera.Width = (int)Math.Floor(Camera.Width * 0.99);
+                Camera.Width = (int) Math.Floor(Camera.Width * 0.99);
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Subtract))
             {
                 // Zoom camera out
-                Camera.Width = (int)Math.Ceiling(Camera.Width * 1.01);
+                Camera.Width = (int) Math.Ceiling(Camera.Width * 1.01);
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Right))
@@ -91,7 +92,7 @@ namespace DungeonCrawler
 
             var playerNewRotation = GetAngleFromPlayerToCursor();
 
-            Player.Update(playerNewRotation, Map.CurrentRoom);
+            Player.Update(playerNewRotation, Map.CurrentRoom.AllObjects);
             Map.CurrentRoom.Update();
         }
 
@@ -103,11 +104,11 @@ namespace DungeonCrawler
         private float GetAngleFromPlayerToCursor()
         {
             // Translate player position to screen space coordinates
-            var pixelsPerUnit = (float)_graphics.WINDOW_WIDTH / Camera.Width;
+            var pixelsPerUnit = (float) _graphics.WINDOW_WIDTH / Camera.Width;
 
             (int x, int y) playerGlobalPosition = (
-                (int)Player.Position.X + Map.CurrentRoomCoords.x * GameMap.RoomWidth,
-                (int)Player.Position.Y + Map.CurrentRoomCoords.y * GameMap.RoomHeight);
+                (int) Player.Position.X + Map.CurrentRoomCoords.x * GameMap.RoomWidth,
+                (int) Player.Position.Y + Map.CurrentRoomCoords.y * GameMap.RoomHeight);
 
             (int x, int y) playerCameraRelativePosition = (playerGlobalPosition.x - Camera.TopLeft.X,
                 playerGlobalPosition.y - Camera.TopLeft.Y);
@@ -120,7 +121,7 @@ namespace DungeonCrawler
             var target = Mouse.GetState().Position;
             var (x, y) = Vector2.Subtract(target.ToVector2(), playerScreenSpacePosition);
 
-            var rotation = (float)Math.Atan2(y, x);
+            var rotation = (float) Math.Atan2(y, x);
 
             return rotation;
         }

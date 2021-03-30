@@ -44,24 +44,29 @@ namespace DungeonCrawler
             return true;
         }
 
-        public static List<GameObject> GetCollisions(GameObject gameObject, GameObject gameObjectTree)
+        public static List<GameObject> GetCollisions(GameObject collider, List<GameObject> gameObjects)
         {
             var found = new List<GameObject>();
             var stack = new Stack<GameObject>();
 
-            stack.Push(gameObjectTree);
-
-            while (stack.Count > 0)
+            foreach (var gameObject in gameObjects)
             {
-                var current = stack.Pop();
+                stack.Clear();
+                stack.Push(gameObject);
 
-                if (IsThereCollision(gameObject, current) && gameObject.Id != current.Id)
+                while (stack.Count > 0)
                 {
-                    found.Add(current);
-                }
+                    var current = stack.Pop();
 
-                current.Children.ForEach(stack.Push);
+                    if (IsThereCollision(collider, current) && collider.Id != current.Id)
+                    {
+                        found.Add(current);
+                    }
+
+                    current.Children.ForEach(stack.Push);
+                }
             }
+            
 
             return found;
         }
@@ -103,23 +108,27 @@ namespace DungeonCrawler
             return true;
         }
 
-        public static List<GameObject> GetOverlaps(GameObject gameObject, GameObject gameObjectTree)
+        public static List<GameObject> GetOverlaps(GameObject collider, List<GameObject> gameObjects)
         {
             var found = new List<GameObject>();
             var stack = new Stack<GameObject>();
 
-            stack.Push(gameObjectTree);
-
-            while (stack.Count > 0)
+            foreach (var gameObject in gameObjects)
             {
-                var current = stack.Pop();
+                stack.Clear();
+                stack.Push(gameObject);
 
-                if (IsThereOverlap(gameObject, current) && gameObject.Id != current.Id)
+                while (stack.Count > 0)
                 {
-                    found.Add(current);
-                }
+                    var current = stack.Pop();
 
-                current.Children.ForEach(stack.Push);
+                    if (IsThereOverlap(collider, current) && collider.Id != current.Id)
+                    {
+                        found.Add(current);
+                    }
+
+                    current.Children.ForEach(stack.Push);
+                }
             }
 
             return found;

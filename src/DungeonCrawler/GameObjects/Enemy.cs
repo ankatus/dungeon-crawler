@@ -12,7 +12,7 @@ namespace DungeonCrawler.GameObjects
         private int _health;
         private float _movingSpeed;
 
-        public Enemy(int x, int y, int width, int height) : base(x, y, width, height)
+        public Enemy(Vector2 position, int width, int height) : base(position, width, height)
         {
             _health = 10;
             _movingSpeed = 0.5F;

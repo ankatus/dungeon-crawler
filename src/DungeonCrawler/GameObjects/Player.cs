@@ -27,29 +27,29 @@ namespace DungeonCrawler.GameObjects
             _projectileSpeed = 5;
         }
 
-        public void Update(float newFacing, GameObject gameObjectTree)
+        public void Update(float newFacing, List<GameObject> gameObjects)
         {
-            Turn(newFacing, gameObjectTree);
+            Turn(newFacing, gameObjects);
 
-            if (InputHandler.Inputs[InputHandler.InputName.Up].IsActivated()) Move(Direction.Up, gameObjectTree);
+            if (InputHandler.Inputs[InputHandler.InputName.Up].IsActivated()) Move(Direction.Up, gameObjects);
 
-            if (InputHandler.Inputs[InputHandler.InputName.Left].IsActivated()) Move(Direction.Left, gameObjectTree);
+            if (InputHandler.Inputs[InputHandler.InputName.Left].IsActivated()) Move(Direction.Left, gameObjects);
 
-            if (InputHandler.Inputs[InputHandler.InputName.Down].IsActivated()) Move(Direction.Down, gameObjectTree);
+            if (InputHandler.Inputs[InputHandler.InputName.Down].IsActivated()) Move(Direction.Down, gameObjects);
 
-            if (InputHandler.Inputs[InputHandler.InputName.Right].IsActivated()) Move(Direction.Right, gameObjectTree);
+            if (InputHandler.Inputs[InputHandler.InputName.Right].IsActivated()) Move(Direction.Right, gameObjects);
 
             if (InputHandler.Inputs[InputHandler.InputName.Shoot].IsActivated()) Shoot();
 
             foreach (var projectile in Projectiles)
             {
-                projectile.Update(gameObjectTree);
+                projectile.Update(gameObjects);
             }
 
             RemoveInactiveProjectiles();
         }
 
-        private void Move(Direction direction, GameObject gameObjectTree)
+        private void Move(Direction direction, List<GameObject> gameObjects)
         {
             Velocity = Vector2.Zero;
             switch (direction)
@@ -75,15 +75,15 @@ namespace DungeonCrawler.GameObjects
             Position += Velocity;
 
             // If overlapping, move back until not overlapping
-            while (CheckOverlaps(gameObjectTree))
+            while (CheckOverlaps(gameObjects))
             {
                 Position -= Velocity / _movingSpeed;
             }
         }
 
-        private bool CheckOverlaps(GameObject gameObjectTree)
+        private bool CheckOverlaps(List<GameObject> gameObjects)
         {
-            var overlaps = CollisionDetection.GetOverlaps(this, gameObjectTree);
+            var overlaps = CollisionDetection.GetOverlaps(this, gameObjects);
 
             foreach (var gameObject in overlaps)
             {
@@ -93,7 +93,7 @@ namespace DungeonCrawler.GameObjects
             return false;
         }
 
-        private void Turn(float newRotation, GameObject gameObjectTree)
+        private void Turn(float newRotation, List<GameObject> gameObjects)
         {
             float previousRotation = Rotation;
 
@@ -101,7 +101,7 @@ namespace DungeonCrawler.GameObjects
             Rotation = newRotation;
 
             // If there is overlap after rotation, undo rotation
-            if (CheckOverlaps(gameObjectTree))
+            if (CheckOverlaps(gameObjects))
             {
                 Rotation = previousRotation;
             }

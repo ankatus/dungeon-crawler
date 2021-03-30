@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace DungeonCrawler
 {
-    public enum TextureID
+    public enum TextureId
     {
-        Default,
+        None,
         Room,
         Player,
         DefaultProjectile,
@@ -20,11 +21,12 @@ namespace DungeonCrawler
 
     public class Drawable
     {
-        public TextureID TextureID { get; init; }
-        public bool DrawThis { get; init; }
+        public Texture2D Texture { get; init; }
         public Vector2 Position { get; init; }
-        public int Width { get; init; }
-        public int Height { get; init; }
+        public Rectangle Source { get; init; }
         public float Rotation { get; init; }
+        public Vector2 Origin { get; init; }
+        public Vector2 Scale { get; init; }
+        public float Layer { get; init; }
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Generic;
 
 namespace DungeonCrawler.GameObjects
 {
@@ -19,11 +20,11 @@ namespace DungeonCrawler.GameObjects
             Damage = 1;
         }
 
-        public void Update(GameObject gameObjectTree)
+        public void Update(List<GameObject> gameObjects)
         {
             Position += Velocity;
 
-            var collisions = CollisionDetection.GetCollisions(this, gameObjectTree);
+            var collisions = CollisionDetection.GetCollisions(this, gameObjects);
 
             foreach (var gameObject in collisions)
             {

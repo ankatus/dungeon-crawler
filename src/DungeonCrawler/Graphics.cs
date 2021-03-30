@@ -19,30 +19,30 @@ namespace DungeonCrawler
         private float _windowAspectRatio;
         private SpriteBatch _spriteBatch;
         private readonly Game1 _game;
-        private readonly Dictionary<TextureID, Texture2D> _textures;
+        private readonly Dictionary<TextureId, Texture2D> _textures;
         private Texture2D _blackBarTexture;
 
         public Graphics(Game1 game)
         {
             _game = game;
             _graphics = new GraphicsDeviceManager(_game);
-            _textures = new Dictionary<TextureID, Texture2D>();  
+            _textures = new Dictionary<TextureId, Texture2D>();
         }
-        
+
         public void Initialize()
         {
             _graphics.PreferredBackBufferWidth = WINDOW_WIDTH;
             _graphics.PreferredBackBufferHeight = WINDOW_HEIGHT;
             _graphics.ApplyChanges();
             _spriteBatch = new SpriteBatch(_game.GraphicsDevice);
-            _windowAspectRatio = (float)WINDOW_WIDTH / WINDOW_HEIGHT;
+            _windowAspectRatio = (float) WINDOW_WIDTH / WINDOW_HEIGHT;
         }
 
         public void LoadTextures()
         {
             _blackBarTexture = _game.Content.Load<Texture2D>("textures/Square");
 
-            foreach (var name in Enum.GetNames(typeof(TextureID)))
+            foreach (var name in Enum.GetNames(typeof(TextureId)))
             {
                 Texture2D texture;
                 try
@@ -57,7 +57,7 @@ namespace DungeonCrawler
                     texture = _game.Content.Load<Texture2D>("textures/Default");
                 }
 
-                Enum.TryParse(name, out TextureID type);
+                Enum.TryParse(name, out TextureId type);
 
                 _textures.Add(type, texture);
             }
@@ -80,7 +80,122 @@ namespace DungeonCrawler
                 // Top/Bottom "black bars"
                 pixelsPerUnit = (float) WINDOW_WIDTH / _game.Camera.Width;
                 verticalPadding = (int) (WINDOW_HEIGHT - WINDOW_WIDTH / _game.Camera.AspectRatio) / 2;
+            }
+            else if (_game.Camera.AspectRatio < _windowAspectRatio)
+            {
+                // Camera is "taller" than window
+                // Left/Right "black bars"
+                pixelsPerUnit = (float) WINDOW_HEIGHT / _game.Camera.Height;
+                horizontalPadding = (int) (WINDOW_WIDTH - WINDOW_HEIGHT * _game.Camera.AspectRatio) / 2;
+            }
+            else
+            {
+                // Aspect ratios are identical, no need to do anything fancy
+                pixelsPerUnit = (float) WINDOW_WIDTH / _game.Camera.Width;
+            }
 
+            DrawBlackBars(horizontalPadding, verticalPadding);
+
+            foreach (var room in _game.Map.Rooms)
+            {
+                foreach (var gameObject in room.AllObjects)
+                {
+                    DrawGameObject(gameObject, pixelsPerUnit, horizontalPadding, verticalPadding);
+                }
+            }
+
+            DrawGameObject(_game.Player, pixelsPerUnit, horizontalPadding, verticalPadding);
+
+            _spriteBatch.End();
+        }
+
+        private void DrawGameObject(GameObject gameObject, float pixelsPerUnit, int horizontalPadding,
+            int verticalPadding)
+        {
+            var stack = new Stack<GameObject>();
+            
+            stack.Push(gameObject);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+
+                if (current.Status != Status.Inactive) DrawDrawable(ConvertGameObjectToDrawable(current, pixelsPerUnit, horizontalPadding, verticalPadding));
+
+                current.Children.ForEach(stack.Push);
+            }
+        }
+
+        private void DrawDrawable(Drawable drawable)
+        {
+            _spriteBatch.Draw(
+                drawable.Texture,
+                drawable.Position,
+                drawable.Source,
+                Color.White,
+                drawable.Rotation,
+                drawable.Origin,
+                drawable.Scale,
+                SpriteEffects.None,
+                drawable.Layer
+            );
+        }
+
+        private Drawable ConvertGameObjectToDrawable(GameObject gameObject, float pixelsPerUnit, int horizontalPadding,
+            int verticalPadding)
+        {
+            var scaled = new List<TextureId>
+                {TextureId.Room, TextureId.Player, TextureId.DefaultProjectile, TextureId.Enemy};
+
+            var textureId = gameObject switch
+            {
+                Player => TextureId.Player,
+                Projectile => TextureId.DefaultProjectile,
+                Wall => TextureId.Wall,
+                Enemy => TextureId.Enemy,
+                _ => throw new Exception()
+            };
+
+            Vector2 scale;
+            Vector2 origin;
+            Rectangle source;
+            var texture = _textures[textureId];
+            if (scaled.Contains(textureId))
+            {
+                scale = new Vector2(gameObject.Width * pixelsPerUnit / texture.Width,
+                    gameObject.Height * pixelsPerUnit / texture.Height);
+                origin = new Vector2((float) texture.Width / 2, (float) texture.Height / 2);
+                source = new Rectangle(0, 0, texture.Width, texture.Height);
+            }
+            else
+            {
+                scale = Vector2.One * pixelsPerUnit;
+                origin = new Vector2((float) gameObject.Width / 2, (float) gameObject.Height / 2);
+                source = new Rectangle(0, 0, gameObject.Width, gameObject.Height);
+            }
+
+            var drawPosition = (gameObject.Position - _game.Camera.TopLeft.ToVector2()) * pixelsPerUnit;
+            drawPosition.X += horizontalPadding;
+            drawPosition.Y += verticalPadding;
+
+            var drawableGameObject = new Drawable
+            {
+                Texture = texture,
+                Position = drawPosition,
+                Source = source,
+                Rotation = gameObject.Rotation,
+                Origin = origin,
+                Scale = scale,
+                Layer = GAME_OBJECT_LAYER
+            };
+
+            return drawableGameObject;
+        }
+
+        private void DrawBlackBars(int horizontalPadding, int verticalPadding)
+        {
+            if (verticalPadding > 0)
+            {
                 // Draw black bars
                 var scale = new Vector2((float) WINDOW_WIDTH / _blackBarTexture.Width,
                     (float) verticalPadding / _blackBarTexture.Height);
@@ -92,13 +207,8 @@ namespace DungeonCrawler
                     null, Color.White, 0.0f,
                     Vector2.Zero, scale, SpriteEffects.None, BLACK_BARS_LAYER);
             }
-            else if (_game.Camera.AspectRatio < _windowAspectRatio)
+            else if (horizontalPadding > 0)
             {
-                // Camera is "taller" than window
-                // Left/Right "black bars"
-                pixelsPerUnit = (float) WINDOW_HEIGHT / _game.Camera.Height;
-                horizontalPadding = (int) (WINDOW_WIDTH - WINDOW_HEIGHT * _game.Camera.AspectRatio) / 2;
-
                 // Draw black bars
                 var scale = new Vector2((float) horizontalPadding / _blackBarTexture.Width,
                     (float) WINDOW_HEIGHT / _blackBarTexture.Height);
@@ -112,100 +222,8 @@ namespace DungeonCrawler
             }
             else
             {
-                // Aspect ratios are identical, no need to do anything fancy
-                pixelsPerUnit = (float) WINDOW_WIDTH / _game.Camera.Width;
+                // Do nothing
             }
-
-            Vector2 offset;
-            for (var y = 0; y < GameMap.VerticalRooms; y++)
-            {
-                for (var x = 0; x < GameMap.HorizontalRooms; x++)
-                {
-                    offset = new Vector2(x * GameMap.RoomWidth, y * GameMap.RoomHeight);
-                    DrawGameObjectTree(_game.Map.Rooms[y, x], offset, pixelsPerUnit, horizontalPadding, verticalPadding);
-                }
-            }
-
-            offset = new Vector2(_game.Map.CurrentRoomCoords.x * GameMap.RoomWidth,
-                _game.Map.CurrentRoomCoords.y * GameMap.RoomHeight);
-
-            DrawGameObjectTree(_game.Player, offset, pixelsPerUnit, horizontalPadding, verticalPadding);
-
-            _spriteBatch.End();
-        }
-
-        private void DrawGameObjectTree(GameObject drawableObject, Vector2 offset, float pixelsPerUnit, int horizontalPadding,
-            int verticalPadding)
-        {
-            var stack = new Stack<GameObject>();
-
-            stack.Push(drawableObject);
-
-            while (stack.Count > 0)
-            {
-                var currentGameObject = stack.Pop();
-                currentGameObject.Children.ForEach(stack.Push);
-                Drawable currentDrawable = ConvertGameObjectToDrawable(currentGameObject);
-
-                if (!_game.Camera.IsObjectVisible(currentDrawable) ||
-                    currentDrawable.TextureID == TextureID.Room ||
-                    currentDrawable.DrawThis == false) continue;
-
-                var texture = _textures[currentDrawable.TextureID];
-                var scale = new Vector2(currentDrawable.Width * pixelsPerUnit / texture.Width,
-                    currentDrawable.Height * pixelsPerUnit / texture.Height);
-                var cameraPosition = _game.Camera.TopLeft.ToVector2();
-                var drawPosition = (currentDrawable.Position + offset - cameraPosition) * pixelsPerUnit;
-                drawPosition.Y += verticalPadding;
-                drawPosition.X += horizontalPadding;
-                
-                if (currentDrawable.TextureID == TextureID.Wall)
-                {
-                    // Use special scaling for walls
-                    _spriteBatch.Draw(texture, drawPosition,
-                        new Rectangle(0, 0, currentDrawable.Width, currentDrawable.Height), Color.White, currentDrawable.Rotation,
-                        new Vector2(currentDrawable.Width / 2, currentDrawable.Height / 2), 1 * pixelsPerUnit, SpriteEffects.None,
-                        GAME_OBJECT_LAYER);
-                }
-                else
-                {
-                    _spriteBatch.Draw(texture, drawPosition,
-                        null, Color.White, currentDrawable.Rotation,
-                        new Vector2(texture.Width / 2, texture.Height / 2), scale, SpriteEffects.None,
-                        GAME_OBJECT_LAYER);
-                }
-            }
-        }
-
-        private Drawable ConvertGameObjectToDrawable(GameObject gameObject)
-        {
-            var textureId = gameObject switch
-            {
-                Room => TextureID.Room,
-                Player => TextureID.Player,
-                Projectile => TextureID.DefaultProjectile,
-                Wall => TextureID.Wall,
-                Enemy => TextureID.Enemy,
-                _ => throw new Exception()
-            };
-
-            bool drawThis = gameObject.Status == Status.Active;
-            Vector2 position = gameObject.Position;
-            int width = gameObject.Width;
-            int height = gameObject.Height;
-            float rotation = gameObject.Rotation;
-
-            Drawable drawableGameObject = new Drawable()
-            {
-                TextureID = textureId,
-                DrawThis = drawThis,
-                Position = position,
-                Width = width,
-                Height = height,
-                Rotation = rotation
-            };
-
-            return drawableGameObject;
         }
     }
 }
