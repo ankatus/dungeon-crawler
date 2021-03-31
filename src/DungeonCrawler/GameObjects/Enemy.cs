@@ -9,31 +9,64 @@ namespace DungeonCrawler.GameObjects
 {
     public class Enemy : GameObject
     {
+        public override List<GameObject> Children => Projectiles.Cast<GameObject>().ToList();
+        public List<Projectile> Projectiles { get; set; }
         private int _health;
         private float _movingSpeed;
 
         public Enemy(Vector2 position, int width, int height) : base(position, width, height)
         {
+            Projectiles = new List<Projectile>();
             _health = 10;
             _movingSpeed = 0.5F;
         }
 
-        public void Update(GameObject gameObjectTree)
+        public void Update(GameObject target, List<GameObject> otherGameObjectsInRoom)
         {
-            // Does not work yet because player does not exist in gameObjectTree
-            foreach (var gameObject in gameObjectTree.Children)
+            if (State == GameObjectState.Active)
             {
-                if (gameObject is Player)
-                {
-                    MoveTowardsPlayer((Player)gameObject);
-                }
+                ChaseTarget(target);
+                Shoot(target);
             }
+
+            foreach (var projectile in Projectiles)
+            {
+                projectile.Update(otherGameObjectsInRoom);
+            }
+
+            RemoveInactiveProjectiles();
         }
 
-        private void MoveTowardsPlayer(Player player)
+        private void ChaseTarget(GameObject target)
         {
-            Vector2 travelDirection = Vector2.Normalize(Vector2.Subtract(player.Position, this.Position));
+            // Move towards target
+            Vector2 travelDirection = Vector2.Normalize(Vector2.Subtract(target.Position, this.Position));
             Position += travelDirection * _movingSpeed;
+
+            // Rotate towards target
+            var (x, y) = Vector2.Subtract(target.Position, Position);
+            Rotation = (float) Math.Atan2(y, x);
+        }
+
+        private void Shoot(GameObject target)
+        {
+            // Create vector from player to target coordinates
+            Vector2 projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
+
+            Projectile projectile = new Projectile((int) Position.X, (int) Position.Y, projectileTravelVector, 5, this);
+
+            Projectiles.Add(projectile);
+        }
+
+        private void RemoveInactiveProjectiles()
+        {
+            for (var i = 0; i < Projectiles.Count; i++)
+            {
+                if (Projectiles[i].State == GameObjectState.Inactive)
+                {
+                    Projectiles.RemoveAt(i);
+                }
+            }
         }
 
         public void ProjectileCollision(Projectile projectile)

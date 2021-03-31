@@ -31,24 +31,24 @@ namespace DungeonCrawler
             CreateSurroundingWalls();
         }
 
-        public void Update()
+        public void Update(Player player)
         {
-            // Enemies.ForEach(enemy => enemy.Update(this));
+            Enemies.ForEach(enemy => enemy.Update(player, AllObjects));
         }
 
         public void CreateSurroundingWalls()
         {
             // Top
             Walls.Add(new Wall(Position + new Vector2(Width / 2, WALL_THICKNESS / 2), Width, WALL_THICKNESS));
-            
+
             // Bottom
             Walls.Add(new Wall(Position + new Vector2(Width / 2, Height - WALL_THICKNESS / 2), Width, WALL_THICKNESS));
-            
+
             // Left
             Walls.Add(new Wall(Position + new Vector2(WALL_THICKNESS / 2, Height / 2), WALL_THICKNESS, Height));
-            
+
             // Right
-            Walls.Add(new Wall(Position + new Vector2(Width - WALL_THICKNESS  / 2, Height / 2), WALL_THICKNESS, Height));
+            Walls.Add(new Wall(Position + new Vector2(Width - WALL_THICKNESS / 2, Height / 2), WALL_THICKNESS, Height));
         }
     }
 }

@@ -75,12 +75,12 @@ namespace DungeonCrawler
                     Exit();
                     break;
                 case GameState.Playing:
-                    Play();
+                    GameLoop();
                     break;
             }
         }
 
-        private void Play()
+        private void GameLoop()
         {
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 GameState = GameState.Menu;
@@ -128,7 +128,7 @@ namespace DungeonCrawler
             var playerNewRotation = GetAngleFromPlayerToCursor();
 
             Player.Update(playerNewRotation, Map.CurrentRoom.AllObjects);
-            Map.CurrentRoom.Update();
+            Map.CurrentRoom.Update(Player);
         }
 
         protected override void Draw(GameTime gameTime)
