@@ -114,7 +114,7 @@ namespace DungeonCrawler
 
             if (_game.GameState == GameState.Menu)
             {
-                DrawUIbject(_game.Menu, pixelsPerUnit);
+                DrawUIObject(_game.Menu, pixelsPerUnit);
             }
 
             _spriteBatch.End();
@@ -137,7 +137,7 @@ namespace DungeonCrawler
             }
         }
 
-        private void DrawUIbject(UIObject UIObject, float pixelsPerUnit)
+        private void DrawUIObject(UIObject UIObject, float pixelsPerUnit)
         {
             var stack = new Stack<UIObject>();
 
