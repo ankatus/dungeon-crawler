@@ -8,9 +8,10 @@ namespace DungeonCrawler
     {
         private int _width;
         private int _height;
-        private const float ASPECT_RATIO = 16f / 9f;
 
-        public float AspectRatio => ASPECT_RATIO;
+        public Point TopLeft;
+
+        public float AspectRatio { get; }
 
         public int Width
         {
@@ -18,7 +19,7 @@ namespace DungeonCrawler
             set
             {
                 _width = value;
-                _height = (int) Math.Ceiling(value / ASPECT_RATIO);
+                _height = (int) Math.Ceiling(value / AspectRatio);
             }
         }
 
@@ -28,23 +29,20 @@ namespace DungeonCrawler
             set
             {
                 _height = value;
-                _width = (int) Math.Ceiling(value * ASPECT_RATIO);
+                _width = (int) Math.Ceiling(value * AspectRatio);
             }
         }
 
-        public Point TopLeft;
-
-        public bool IsObjectVisible(Drawable gameObject)
+        public Camera(float aspectRatio)
         {
-            // TODO: Implement
-            return true;
+            AspectRatio = aspectRatio;
         }
 
         public void ZoomTo(Point topLeft, int targetWidth, int targetHeight)
         {
             TopLeft = topLeft;
 
-            if (ASPECT_RATIO > 1.0f)
+            if (AspectRatio > 1.0f)
             {
                 Height = targetHeight;
             }

@@ -40,17 +40,19 @@ namespace DungeonCrawler
             _graphics.Initialize();
             Map = new GameMap();
 
-            Camera = new Camera()
-            {
-                Width = GameMap.HorizontalRooms * GameMap.RoomWidth,
-                TopLeft = new Point(0, 0),
-            };
             Player = new Player(100, 100);
 
             int WINDOW_WIDTH = 1280;
             int WINDOW_HEIGHT = 720;
             int width = 600;
             int height = 400;
+
+            Camera = new Camera((float) WINDOW_WIDTH / WINDOW_HEIGHT)
+            {
+                Width = GameMap.HorizontalRooms * GameMap.RoomWidth,
+                TopLeft = new Point(0, 0),
+            };
+
             Menu = new Menu(this, (WINDOW_WIDTH) / 2, (WINDOW_HEIGHT) / 2, width, height);
 
             base.Initialize();
