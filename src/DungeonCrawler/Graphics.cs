@@ -114,7 +114,7 @@ namespace DungeonCrawler
 
             if (_game.GameState == GameState.Menu)
             {
-                DrawUIbject(_game.Menu, pixelsPerUnit, horizontalPadding, verticalPadding);
+                DrawUIbject(_game.Menu, pixelsPerUnit);
             }
 
             _spriteBatch.End();
@@ -137,8 +137,7 @@ namespace DungeonCrawler
             }
         }
 
-        private void DrawUIbject(UIObject UIObject, float pixelsPerUnit, int horizontalPadding,
-            int verticalPadding)
+        private void DrawUIbject(UIObject UIObject, float pixelsPerUnit)
         {
             var stack = new Stack<UIObject>();
 
@@ -148,7 +147,7 @@ namespace DungeonCrawler
             {
                 var current = stack.Pop();
 
-                DrawDrawable(ConvertUIObjectToDrawable(current, pixelsPerUnit, horizontalPadding, verticalPadding));
+                DrawDrawable(ConvertUIObjectToDrawable(current, pixelsPerUnit, 0, 0));
 
                 if (current is Button && (current as Button).Text != "")
                 {
