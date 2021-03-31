@@ -33,7 +33,7 @@ namespace DungeonCrawler.GameObjects
 
                 if (gameObject is Wall)
                 {
-                    Status = Status.Inactive;
+                    State = GameObjectState.Inactive;
                 }
                 else if (gameObject is Enemy)
                 {

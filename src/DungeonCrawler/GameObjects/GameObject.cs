@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DungeonCrawler.GameObjects
 {
-    public enum Status
+    public enum GameObjectState
     {
         Active,
         Inactive
@@ -19,7 +19,7 @@ namespace DungeonCrawler.GameObjects
         public float Rotation { get; set; }
         public virtual List<GameObject> Children { get; }  
         public Vector2 Velocity;
-        public Status Status { get; set; }
+        public GameObjectState State { get; set; }
 
         protected GameObject(int x, int y, int width, int height)
         {
@@ -27,7 +27,7 @@ namespace DungeonCrawler.GameObjects
             Position = new Vector2(x, y);
             Width = width;
             Height = height;
-            Status = Status.Active;
+            State = GameObjectState.Active;
             Children = new List<GameObject>();
         }
 
@@ -37,7 +37,7 @@ namespace DungeonCrawler.GameObjects
             Position = position;
             Width = width;
             Height = height;
-            Status = Status.Active;
+            State = GameObjectState.Active;
             Children = new List<GameObject>();
         }
     }

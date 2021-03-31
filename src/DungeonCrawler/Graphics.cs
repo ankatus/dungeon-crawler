@@ -120,7 +120,7 @@ namespace DungeonCrawler
             {
                 var current = stack.Pop();
 
-                if (current.Status != Status.Inactive) DrawDrawable(ConvertGameObjectToDrawable(current, pixelsPerUnit, horizontalPadding, verticalPadding));
+                if (current.State != GameObjectState.Inactive) DrawDrawable(ConvertGameObjectToDrawable(current, pixelsPerUnit, horizontalPadding, verticalPadding));
 
                 current.Children.ForEach(stack.Push);
             }

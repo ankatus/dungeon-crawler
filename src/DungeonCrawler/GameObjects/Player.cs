@@ -121,7 +121,7 @@ namespace DungeonCrawler.GameObjects
         {
             for (var i = 0; i < Projectiles.Count; i++)
             {
-                if (Projectiles[i].Status == Status.Inactive)
+                if (Projectiles[i].State == GameObjectState.Inactive)
                 {
                     Projectiles.RemoveAt(i);
                 }

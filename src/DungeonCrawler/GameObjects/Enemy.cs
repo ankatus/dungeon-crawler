@@ -44,7 +44,7 @@ namespace DungeonCrawler.GameObjects
 
                 if (_health <= 0)
                 {
-                    Status = Status.Inactive;
+                    State = GameObjectState.Inactive;
                 }
             }
         }
