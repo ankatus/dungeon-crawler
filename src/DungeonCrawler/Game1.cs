@@ -7,18 +7,29 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DungeonCrawler.GameObjects;
+using DungeonCrawler.UIObjects;
 
 namespace DungeonCrawler
 {
+    public enum GameState
+    {
+        Menu,
+        Playing,
+        Exit
+    }
+
     public class Game1 : Game
     {
         private Graphics _graphics;
         public GameMap Map { get; set; }
         public Player Player { get; set; }
+        public Menu Menu { get; set; }
         public Camera Camera { get; private set; }
+        public GameState GameState { get; set; }
 
         public Game1()
         {
+            GameState = GameState.Menu;
             _graphics = new Graphics(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
@@ -36,6 +47,12 @@ namespace DungeonCrawler
             };
             Player = new Player(100, 100);
 
+            int WINDOW_WIDTH = 1280;
+            int WINDOW_HEIGHT = 720;
+            int width = 600;
+            int height = 400;
+            Menu = new Menu(this, (WINDOW_WIDTH) / 2, (WINDOW_HEIGHT) / 2, width, height);
+
             base.Initialize();
         }
 
@@ -46,9 +63,24 @@ namespace DungeonCrawler
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
-                Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+            switch (GameState)
+            {
+                case GameState.Menu:
+                    Menu.Update();
+                    break;
+                case GameState.Exit:
+                    Exit();
+                    break;
+                case GameState.Playing:
+                    Play();
+                    break;
+            }
+        }
+
+        private void Play()
+        {
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+                GameState = GameState.Menu;
 
             if (Keyboard.GetState().IsKeyDown(Keys.Add))
             {

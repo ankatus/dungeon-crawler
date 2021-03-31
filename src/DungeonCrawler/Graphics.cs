@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using DungeonCrawler.GameObjects;
+using DungeonCrawler.UIObjects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -13,6 +14,9 @@ namespace DungeonCrawler
         public int WINDOW_WIDTH = 1280;
         public int WINDOW_HEIGHT = 720;
         private const float GAME_OBJECT_LAYER = 0.1f;
+        private const float UI_BACKGROUND_LAYER = 0.2f;
+        private const float UI_OBJECT_LAYER = 0.3f;
+        private const float TEXT_OBJECT_LAYER = 0.4f;
         private const float BLACK_BARS_LAYER = 0.0f;
 
         private readonly GraphicsDeviceManager _graphics;
@@ -21,6 +25,7 @@ namespace DungeonCrawler
         private readonly Game1 _game;
         private readonly Dictionary<TextureId, Texture2D> _textures;
         private Texture2D _blackBarTexture;
+        private SpriteFont _testFont;
 
         public Graphics(Game1 game)
         {
@@ -40,7 +45,8 @@ namespace DungeonCrawler
 
         public void LoadTextures()
         {
-            _blackBarTexture = _game.Content.Load<Texture2D>("textures/Square");
+            _blackBarTexture = _game.Content.Load<Texture2D>("textures/Black");
+            _testFont = _game.Content.Load<SpriteFont>("TestFont");
 
             foreach (var name in Enum.GetNames(typeof(TextureId)))
             {
@@ -67,7 +73,7 @@ namespace DungeonCrawler
         {
             _game.GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            _spriteBatch.Begin(sortMode: SpriteSortMode.BackToFront, samplerState: SamplerState.LinearWrap);
+            _spriteBatch.Begin(sortMode: SpriteSortMode.FrontToBack, samplerState: SamplerState.LinearWrap);
 
             float pixelsPerUnit;
             var verticalPadding = 0;
@@ -106,6 +112,11 @@ namespace DungeonCrawler
 
             DrawGameObject(_game.Player, pixelsPerUnit, horizontalPadding, verticalPadding);
 
+            if (_game.GameState == GameState.Menu)
+            {
+                DrawUIbject(_game.Menu, pixelsPerUnit, horizontalPadding, verticalPadding);
+            }
+
             _spriteBatch.End();
         }
 
@@ -113,7 +124,7 @@ namespace DungeonCrawler
             int verticalPadding)
         {
             var stack = new Stack<GameObject>();
-            
+
             stack.Push(gameObject);
 
             while (stack.Count > 0)
@@ -121,6 +132,34 @@ namespace DungeonCrawler
                 var current = stack.Pop();
 
                 if (current.State != GameObjectState.Inactive) DrawDrawable(ConvertGameObjectToDrawable(current, pixelsPerUnit, horizontalPadding, verticalPadding));
+
+                current.Children.ForEach(stack.Push);
+            }
+        }
+
+        private void DrawUIbject(UIObject UIObject, float pixelsPerUnit, int horizontalPadding,
+            int verticalPadding)
+        {
+            var stack = new Stack<UIObject>();
+
+            stack.Push(UIObject);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+
+                DrawDrawable(ConvertUIObjectToDrawable(current, pixelsPerUnit, horizontalPadding, verticalPadding));
+
+                if (current is Button && (current as Button).Text != "")
+                {
+                    Button btn = (current as Button);
+                    string text = btn.Text;
+
+                    Vector2 textSize = _testFont.MeasureString(text);
+                    Vector2 textLocation = btn.Position - new Vector2(textSize.X / 2, textSize.Y / 2);
+
+                    _spriteBatch.DrawString(_testFont, text, textLocation, Color.Red, 0, new Vector2(0, 0), 1, SpriteEffects.None, TEXT_OBJECT_LAYER);
+                }
 
                 current.Children.ForEach(stack.Push);
             }
@@ -190,6 +229,42 @@ namespace DungeonCrawler
             };
 
             return drawableGameObject;
+        }
+
+        private Drawable ConvertUIObjectToDrawable(UIObject uiObject, float pixelsPerUnit, int horizontalPadding,
+           int verticalPadding)
+        {
+            var textureId = uiObject switch
+            {
+                Button => TextureId.ButtonBackground,
+                Menu => TextureId.None,
+                _ => throw new Exception()
+            };
+
+            var texture = _textures[textureId];
+            var scale = new Vector2(uiObject.Width / texture.Width, uiObject.Height / texture.Height);
+            var origin = new Vector2((float) texture.Width / 2, (float) texture.Height / 2);
+            var source = new Rectangle(0, 0, texture.Width, texture.Height);
+            var drawPosition = uiObject.Position + new Vector2(horizontalPadding, verticalPadding);
+            var layer = UI_OBJECT_LAYER;
+
+            if (uiObject is Menu)
+            {
+                layer = UI_BACKGROUND_LAYER;
+            }
+
+            var drawableUIObject = new Drawable
+            {
+                Texture = texture,
+                Position = drawPosition,
+                Source = source,
+                Rotation = uiObject.Rotation,
+                Origin = origin,
+                Scale = scale,
+                Layer = layer
+            };
+
+            return drawableUIObject;
         }
 
         private void DrawBlackBars(int horizontalPadding, int verticalPadding)
