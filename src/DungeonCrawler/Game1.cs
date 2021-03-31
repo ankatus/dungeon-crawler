@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DungeonCrawler.GameObjects;
+using DungeonCrawler.Maps;
 using DungeonCrawler.UIObjects;
 
 namespace DungeonCrawler
@@ -21,7 +22,7 @@ namespace DungeonCrawler
     public class Game1 : Game
     {
         private Graphics _graphics;
-        public GameMap Map { get; set; }
+        public DefaultMap Map { get; set; }
         public Player Player { get; set; }
         public Menu Menu { get; set; }
         public Camera Camera { get; private set; }
@@ -38,7 +39,7 @@ namespace DungeonCrawler
         protected override void Initialize()
         {
             _graphics.Initialize();
-            Map = new GameMap();
+            Map = new DefaultMap();
 
             Player = new Player(100, 100);
 
@@ -49,7 +50,7 @@ namespace DungeonCrawler
 
             Camera = new Camera((float) WINDOW_WIDTH / WINDOW_HEIGHT)
             {
-                Width = GameMap.HorizontalRooms * GameMap.RoomWidth,
+                Width = Map.HorizontalRooms * Map.RoomWidth,
                 TopLeft = new Point(0, 0),
             };
 
@@ -118,10 +119,10 @@ namespace DungeonCrawler
 
             if (Keyboard.GetState().IsKeyDown(Keys.Enter))
             {
-                var currentRoomTopLeft = new Point(Map.CurrentRoomCoords.x * GameMap.RoomWidth,
-                    Map.CurrentRoomCoords.y * GameMap.RoomHeight);
+                var currentRoomTopLeft = new Point(Map.CurrentRoomX * Map.RoomWidth,
+                    Map.CurrentRoomY * Map.RoomHeight);
 
-                Camera.ZoomTo(currentRoomTopLeft, GameMap.RoomWidth, GameMap.RoomHeight);
+                Camera.ZoomTo(currentRoomTopLeft, Map.RoomWidth, Map.RoomHeight);
             }
 
             var playerNewRotation = GetAngleFromPlayerToCursor();
@@ -141,8 +142,8 @@ namespace DungeonCrawler
             var pixelsPerUnit = (float) _graphics.WINDOW_WIDTH / Camera.Width;
 
             (int x, int y) playerGlobalPosition = (
-                (int) Player.Position.X + Map.CurrentRoomCoords.x * GameMap.RoomWidth,
-                (int) Player.Position.Y + Map.CurrentRoomCoords.y * GameMap.RoomHeight);
+                (int) Player.Position.X + Map.CurrentRoomX * Map.RoomWidth,
+                (int) Player.Position.Y + Map.CurrentRoomY * Map.RoomHeight);
 
             (int x, int y) playerCameraRelativePosition = (playerGlobalPosition.x - Camera.TopLeft.X,
                 playerGlobalPosition.y - Camera.TopLeft.Y);
