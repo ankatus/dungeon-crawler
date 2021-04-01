@@ -11,13 +11,15 @@ namespace DungeonCrawler.GameObjects
     {
         public override List<GameObject> Children => Projectiles.Cast<GameObject>().ToList();
         public List<Projectile> Projectiles { get; set; }
-        private int _health;
+        public float MaxHealth { get; }
+        public float CurrentHealth { get; private set; }
         private float _movingSpeed;
 
         public Enemy(Vector2 position, int width, int height) : base(position, width, height)
         {
             Projectiles = new List<Projectile>();
-            _health = 10;
+            MaxHealth = 20;
+            CurrentHealth = MaxHealth;
             _movingSpeed = 0.5F;
         }
 
@@ -73,9 +75,9 @@ namespace DungeonCrawler.GameObjects
         {
             if (projectile.Source != this)
             {
-                _health -= projectile.Damage;
+                CurrentHealth -= projectile.Damage;
 
-                if (_health <= 0)
+                if (CurrentHealth <= 0)
                 {
                     State = GameObjectState.Inactive;
                 }

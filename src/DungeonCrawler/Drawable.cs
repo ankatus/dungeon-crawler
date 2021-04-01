@@ -8,17 +8,6 @@ using System.Threading.Tasks;
 
 namespace DungeonCrawler
 {
-    public enum TextureId
-    {
-        None,
-        Room,
-        Player,
-        DefaultProjectile,
-        Wall,
-        Enemy,
-        ButtonBackground
-    };
-
     public class Drawable
     {
         public Texture2D Texture { get; init; }

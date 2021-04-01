@@ -19,12 +19,15 @@ namespace DungeonCrawler.GameObjects
         public List<Projectile> Projectiles { get; set; }
         private readonly int _movingSpeed;
         private readonly int _projectileSpeed;
+        private DateTime _lastShotTime;
+        private TimeSpan _minTimeBetweenShots;
 
         public Player(int x, int y) : base(x, y, 10, 30)
         {
             Projectiles = new List<Projectile>();
             _movingSpeed = 3;
             _projectileSpeed = 5;
+            _minTimeBetweenShots = TimeSpan.FromMilliseconds(100);
         }
 
         public void Update(float newFacing, List<GameObject> gameObjects)
@@ -109,12 +112,16 @@ namespace DungeonCrawler.GameObjects
 
         private void Shoot()
         {
-            // Create vector from player to target coordinates
-            Vector2 projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
+            if (DateTime.Now - _lastShotTime > _minTimeBetweenShots)
+            {
+                // Create vector from player to target coordinates
+                Vector2 projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
 
-            Projectile projectile = new Projectile((int)Position.X, (int)Position.Y, projectileTravelVector, _projectileSpeed, this);
+                Projectile projectile = new Projectile((int) Position.X, (int) Position.Y, projectileTravelVector, _projectileSpeed, this);
 
-            Projectiles.Add(projectile);
+                Projectiles.Add(projectile);
+                _lastShotTime = DateTime.Now;
+            }
         }
 
         private void RemoveInactiveProjectiles()

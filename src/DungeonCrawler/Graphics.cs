@@ -11,13 +11,28 @@ namespace DungeonCrawler
 {
     public class Graphics
     {
+        public enum TextureId
+        {
+            Default,
+            Room,
+            Player,
+            DefaultProjectile,
+            Wall,
+            Enemy,
+            ButtonBackground,
+            HealthBar
+        };
+
         public int WINDOW_WIDTH = 1280;
         public int WINDOW_HEIGHT = 720;
-        private const float GAME_OBJECT_LAYER = 0.1f;
-        private const float UI_BACKGROUND_LAYER = 0.2f;
-        private const float UI_OBJECT_LAYER = 0.3f;
-        private const float TEXT_OBJECT_LAYER = 0.4f;
         private const float BLACK_BARS_LAYER = 0.0f;
+        private const float GAME_OBJECT_LAYER = 0.1f;
+
+        private const float HEALTH_BAR_LAYER = 0.4f;
+
+        private const float UI_BACKGROUND_LAYER = 0.6f;
+        private const float UI_OBJECT_LAYER = 0.7f;
+        private const float UI_TEXT_LAYER = 0.8f;
 
         private readonly GraphicsDeviceManager _graphics;
         private float _windowAspectRatio;
@@ -131,7 +146,28 @@ namespace DungeonCrawler
             {
                 var current = stack.Pop();
 
-                if (current.State != GameObjectState.Inactive) DrawDrawable(ConvertGameObjectToDrawable(current, pixelsPerUnit, horizontalPadding, verticalPadding));
+                if (current.State != GameObjectState.Inactive)
+                {
+                    Drawable drawable = ConvertGameObjectToDrawable(current, pixelsPerUnit, horizontalPadding, verticalPadding);
+                    DrawDrawable(drawable);
+
+                    // Draw health bar for enemy (Need to be refactored)
+                    if (current is Enemy)
+                    {
+                        Enemy enemy = (current as Enemy);
+                        _spriteBatch.Draw(
+                            _textures[TextureId.HealthBar],
+                            drawable.Position,
+                            new Rectangle(0, 0, (int) (30 * (enemy.CurrentHealth / enemy.MaxHealth)), 5),
+                            Color.White,
+                            0,
+                            new Vector2(0, 0),
+                            1,
+                            SpriteEffects.None,
+                            HEALTH_BAR_LAYER
+                        );
+                    }
+                }
 
                 current.Children.ForEach(stack.Push);
             }
@@ -147,17 +183,21 @@ namespace DungeonCrawler
             {
                 var current = stack.Pop();
 
-                DrawDrawable(ConvertUIObjectToDrawable(current, pixelsPerUnit, 0, 0));
-
-                if (current is Button && (current as Button).Text != "")
+                if (current.State == UIObjectState.Active)
                 {
-                    Button btn = (current as Button);
-                    string text = btn.Text;
+                    DrawDrawable(ConvertUIObjectToDrawable(current, pixelsPerUnit, 0, 0));
 
-                    Vector2 textSize = _testFont.MeasureString(text);
-                    Vector2 textLocation = btn.Position - new Vector2(textSize.X / 2, textSize.Y / 2);
+                    // Draw text on button (Need to be refactored)
+                    if (current is Button && (current as Button).Text != "")
+                    {
+                        Button btn = (current as Button);
+                        string text = btn.Text;
 
-                    _spriteBatch.DrawString(_testFont, text, textLocation, Color.Red, 0, new Vector2(0, 0), 1, SpriteEffects.None, TEXT_OBJECT_LAYER);
+                        Vector2 textSize = _testFont.MeasureString(text);
+                        Vector2 textLocation = btn.Position - new Vector2(textSize.X / 2, textSize.Y / 2);
+
+                        _spriteBatch.DrawString(_testFont, text, textLocation, Color.Red, 0, new Vector2(0, 0), 1, SpriteEffects.None, UI_TEXT_LAYER);
+                    }
                 }
 
                 current.Children.ForEach(stack.Push);
@@ -236,7 +276,7 @@ namespace DungeonCrawler
             var textureId = uiObject switch
             {
                 Button => TextureId.ButtonBackground,
-                Menu => TextureId.None,
+                Menu => TextureId.Default,
                 _ => throw new Exception()
             };
 
