@@ -130,7 +130,6 @@ namespace DungeonCrawler
         {
             var gameObjects = new List<GameObject>();
             gameObjects.Add(Map.Player);
-            gameObjects.AddRange(Map.Player.Projectiles);
             foreach (var room in Map.Rooms)
             {
                 gameObjects.AddRange(room.AllObjects);

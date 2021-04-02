@@ -44,12 +44,12 @@ namespace DungeonCrawler.Maps
             HorizontalRooms = horizontalRooms;
             VerticalRooms = verticalRooms;
             Rooms = new Room[VerticalRooms, HorizontalRooms];
-            Player = new Player(100, 100);
+            Player = new Player(this, 100, 100);
         }
 
         public void Update(float playerNewRotation)
         {
-            Player.Update(playerNewRotation, CurrentRoom.AllObjects);
+            Player.Update(playerNewRotation);
 
             CurrentRoom.Update(Player);
 

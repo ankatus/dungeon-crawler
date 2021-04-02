@@ -10,7 +10,7 @@ namespace DungeonCrawler.Rooms
         private const int WALL_THICKNESS = 10;
         private const int DOOR_WIDTH = 100;
 
-        protected readonly Vector2 _position;
+        protected readonly Vector2 Position;
 
         public int WallThickness => WALL_THICKNESS;
         public int Width { get; init; }
@@ -18,30 +18,49 @@ namespace DungeonCrawler.Rooms
         public List<Wall> Walls { get; set; }
         public List<Door> Doors { get; set; }
         public List<Enemy> Enemies { get; set; }
+        public List<Projectile> Projectiles { get; }
         public List<GameObject> AllObjects => new List<GameObject>()
                                                 .Concat(Walls)
                                                 .Concat(Doors)
                                                 .Concat(Enemies)
+                                                .Concat(Projectiles)
                                                 .ToList();
 
         protected Room(Vector2 position, int width, int height, List<DoorPosition> doorPositions)
         {
-            _position = position;
+            Position = position;
             Width = width;
             Height = height;
             Walls = new List<Wall>();
             Doors = new List<Door>();
             Enemies = new List<Enemy>();
-            Enemies = new List<Enemy>
-            {
-            };
+            Projectiles = new List<Projectile>();
             CreateSurroundingWalls(doorPositions);
         }
 
         public void Update(Player player)
         {
-            Enemies.ForEach(enemy => enemy.Update(player, AllObjects));
+            Enemies.ForEach(enemy => enemy.Update(player));
             Doors.ForEach(door => door.Update(player));
+            var noProjectiles = new List<GameObject>()
+                .Concat(Walls)
+                .Concat(Doors)
+                .Concat(Enemies)
+                .ToList();
+            Projectiles.ForEach(projectile => projectile.Update(noProjectiles));
+
+            PruneProjectiles();
+        }
+
+        private void PruneProjectiles()
+        {
+            for (var i = 0; i < Projectiles.Count; i++)
+            {
+                if (Projectiles[i].State == GameObjectState.Inactive)
+                {
+                    Projectiles.RemoveAt(i);
+                }
+            }
         }
 
         public void CreateSurroundingWalls(List<DoorPosition> doorPositions)
@@ -55,18 +74,18 @@ namespace DungeonCrawler.Rooms
                 var wallWidth = Width / 2 - DOOR_WIDTH / 2;
                 var x = wallWidth / 2;
                 var center = new Vector2(x, WALL_THICKNESS / 2);
-                var leftWall = new Wall(_position + center, wallWidth, WALL_THICKNESS);
+                var leftWall = new Wall(Position + center, wallWidth, WALL_THICKNESS);
 
                 // Right wall
                 x = wallWidth + DOOR_WIDTH + wallWidth / 2;
                 center = new Vector2(x, WALL_THICKNESS / 2);
-                var rightWall = new Wall(_position + center, wallWidth
+                var rightWall = new Wall(Position + center, wallWidth
                     , WALL_THICKNESS);
 
                 // Door
                 x = leftWall.Width + DOOR_WIDTH / 2;
                 center = new Vector2(x, WALL_THICKNESS / 2);
-                var door = new Door(_position + center, DOOR_WIDTH, WALL_THICKNESS, DoorPosition.Top);
+                var door = new Door(Position + center, DOOR_WIDTH, WALL_THICKNESS, DoorPosition.Top);
 
                 Walls.Add(leftWall);
                 Walls.Add(rightWall);
@@ -74,7 +93,7 @@ namespace DungeonCrawler.Rooms
             }
             else
             {
-                Walls.Add(new Wall(_position + new Vector2(Width / 2, WALL_THICKNESS / 2), Width, WALL_THICKNESS));
+                Walls.Add(new Wall(Position + new Vector2(Width / 2, WALL_THICKNESS / 2), Width, WALL_THICKNESS));
             }
 
 
@@ -87,17 +106,17 @@ namespace DungeonCrawler.Rooms
                 var wallWidth = Width / 2 - DOOR_WIDTH / 2;
                 var x = wallWidth / 2;
                 var center = new Vector2(x, Height - WALL_THICKNESS / 2);
-                var leftWall = new Wall(_position + center, wallWidth, WALL_THICKNESS);
+                var leftWall = new Wall(Position + center, wallWidth, WALL_THICKNESS);
 
                 // Right wall
                 x = wallWidth + DOOR_WIDTH + wallWidth / 2;
                 center = new Vector2(x, Height - WALL_THICKNESS / 2);
-                var rightWall = new Wall(_position + center, wallWidth, WALL_THICKNESS);
+                var rightWall = new Wall(Position + center, wallWidth, WALL_THICKNESS);
 
                 // Door
                 x = leftWall.Width + DOOR_WIDTH / 2;
                 center = new Vector2(x, Height - WALL_THICKNESS / 2);
-                var door = new Door(_position + center, DOOR_WIDTH, WALL_THICKNESS, DoorPosition.Bottom);
+                var door = new Door(Position + center, DOOR_WIDTH, WALL_THICKNESS, DoorPosition.Bottom);
 
                 Walls.Add(leftWall);
                 Walls.Add(rightWall);
@@ -105,7 +124,7 @@ namespace DungeonCrawler.Rooms
             }
             else
             {
-                Walls.Add(new Wall(_position + new Vector2(Width / 2, Height - WALL_THICKNESS / 2), Width,
+                Walls.Add(new Wall(Position + new Vector2(Width / 2, Height - WALL_THICKNESS / 2), Width,
                     WALL_THICKNESS));
             }
 
@@ -119,17 +138,17 @@ namespace DungeonCrawler.Rooms
                 var wallHeight = Height / 2 - DOOR_WIDTH / 2;
                 var y = wallHeight / 2;
                 var center = new Vector2(WALL_THICKNESS / 2, y);
-                var topWall = new Wall(_position + center, WALL_THICKNESS, wallHeight);
+                var topWall = new Wall(Position + center, WALL_THICKNESS, wallHeight);
                 
                 // Bottom wall
                 y = wallHeight + DOOR_WIDTH + wallHeight / 2;
                 center = new Vector2(WALL_THICKNESS / 2, y);
-                var bottomWall = new Wall(_position + center, WALL_THICKNESS, wallHeight);
+                var bottomWall = new Wall(Position + center, WALL_THICKNESS, wallHeight);
 
                 // Door
                 y = wallHeight + DOOR_WIDTH / 2;
                 center = new Vector2(WALL_THICKNESS / 2, y);
-                var door = new Door(_position + center, WALL_THICKNESS, DOOR_WIDTH, DoorPosition.Left);
+                var door = new Door(Position + center, WALL_THICKNESS, DOOR_WIDTH, DoorPosition.Left);
 
                 Walls.Add(topWall);
                 Walls.Add(bottomWall);
@@ -137,7 +156,7 @@ namespace DungeonCrawler.Rooms
             }
             else
             {
-                Walls.Add(new Wall(_position + new Vector2(WALL_THICKNESS / 2, Height / 2), WALL_THICKNESS, Height));
+                Walls.Add(new Wall(Position + new Vector2(WALL_THICKNESS / 2, Height / 2), WALL_THICKNESS, Height));
             }
 
             // Right
@@ -149,17 +168,17 @@ namespace DungeonCrawler.Rooms
                 var wallHeight = Height / 2 - DOOR_WIDTH / 2;
                 var y = wallHeight / 2;
                 var center = new Vector2(Width - WALL_THICKNESS / 2, y);
-                var leftWall = new Wall(_position + center, WALL_THICKNESS, wallHeight);
+                var leftWall = new Wall(Position + center, WALL_THICKNESS, wallHeight);
                 
                 // Bottom wall
                 y = wallHeight + DOOR_WIDTH + wallHeight / 2;
                 center = new Vector2(Width - WALL_THICKNESS / 2, y);
-                var rightWall = new Wall(_position + center, WALL_THICKNESS, wallHeight);
+                var rightWall = new Wall(Position + center, WALL_THICKNESS, wallHeight);
 
                 // Door
                 y = wallHeight + DOOR_WIDTH / 2;
                 center = new Vector2(Width - WALL_THICKNESS / 2, y);
-                var door = new Door(_position + center, WALL_THICKNESS, DOOR_WIDTH, DoorPosition.Right);
+                var door = new Door(Position + center, WALL_THICKNESS, DOOR_WIDTH, DoorPosition.Right);
 
                 Walls.Add(leftWall);
                 Walls.Add(rightWall);
@@ -167,7 +186,7 @@ namespace DungeonCrawler.Rooms
             }
             else
             {
-                Walls.Add(new Wall(_position + new Vector2(Width - WALL_THICKNESS / 2, Height / 2), WALL_THICKNESS, Height));
+                Walls.Add(new Wall(Position + new Vector2(Width - WALL_THICKNESS / 2, Height / 2), WALL_THICKNESS, Height));
             }
         }
     }

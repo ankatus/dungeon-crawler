@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DungeonCrawler.Maps;
 
 namespace DungeonCrawler.GameObjects
 {
@@ -14,43 +15,36 @@ namespace DungeonCrawler.GameObjects
 
     public class Player : GameObject
     {
-        public List<Projectile> Projectiles { get; set; }
         private readonly int _movingSpeed;
         private readonly int _projectileSpeed;
         private DateTime _lastShotTime;
-        private TimeSpan _minTimeBetweenShots;
+        private readonly TimeSpan _minTimeBetweenShots;
+        private readonly GameMap _map;
 
-        public Player(int x, int y) : base(x, y, 10, 30)
+        public Player(GameMap map, int x, int y) : base(x, y, 10, 30)
         {
-            Projectiles = new List<Projectile>();
+            _map = map;
             _movingSpeed = 3;
             _projectileSpeed = 5;
             _minTimeBetweenShots = TimeSpan.FromMilliseconds(100);
         }
 
-        public void Update(float newFacing, List<GameObject> gameObjects)
+        public void Update(float newFacing)
         {
-            Turn(newFacing, gameObjects);
+            Turn(newFacing);
 
-            if (InputHandler.Inputs[InputHandler.InputName.Up].IsActivated()) Move(Direction.Up, gameObjects);
+            if (InputHandler.Inputs[InputHandler.InputName.Up].IsActivated()) Move(Direction.Up);
 
-            if (InputHandler.Inputs[InputHandler.InputName.Left].IsActivated()) Move(Direction.Left, gameObjects);
+            if (InputHandler.Inputs[InputHandler.InputName.Left].IsActivated()) Move(Direction.Left);
 
-            if (InputHandler.Inputs[InputHandler.InputName.Down].IsActivated()) Move(Direction.Down, gameObjects);
+            if (InputHandler.Inputs[InputHandler.InputName.Down].IsActivated()) Move(Direction.Down);
 
-            if (InputHandler.Inputs[InputHandler.InputName.Right].IsActivated()) Move(Direction.Right, gameObjects);
+            if (InputHandler.Inputs[InputHandler.InputName.Right].IsActivated()) Move(Direction.Right);
 
             if (InputHandler.Inputs[InputHandler.InputName.Shoot].IsActivated()) Shoot();
-
-            foreach (var projectile in Projectiles)
-            {
-                projectile.Update(gameObjects);
-            }
-
-            RemoveInactiveProjectiles();
         }
 
-        private void Move(Direction direction, List<GameObject> gameObjects)
+        private void Move(Direction direction)
         {
             Velocity = Vector2.Zero;
             switch (direction)
@@ -76,33 +70,26 @@ namespace DungeonCrawler.GameObjects
             Position += Velocity;
 
             // If overlapping, move back until not overlapping
-            while (CheckOverlaps(gameObjects))
+            while (CheckWalls())
             {
                 Position -= Velocity / _movingSpeed;
             }
         }
 
-        private bool CheckOverlaps(List<GameObject> gameObjects)
+        private bool CheckWalls()
         {
-            var overlaps = CollisionDetection.GetOverlaps(this, gameObjects);
-
-            foreach (var gameObject in overlaps)
-            {
-                if (gameObject is Wall) return true;
-            }
-
-            return false;
+            return CollisionDetection.GetOverlaps(this, _map.CurrentRoom.Walls.Cast<GameObject>().ToList()).Count > 0;
         }
 
-        private void Turn(float newRotation, List<GameObject> gameObjects)
+        private void Turn(float newRotation)
         {
-            float previousRotation = Rotation;
+            var previousRotation = Rotation;
 
             // Rotate towards target
             Rotation = newRotation;
 
             // If there is overlap after rotation, undo rotation
-            if (CheckOverlaps(gameObjects))
+            if (CheckWalls())
             {
                 Rotation = previousRotation;
             }
@@ -110,27 +97,15 @@ namespace DungeonCrawler.GameObjects
 
         private void Shoot()
         {
-            if (DateTime.Now - _lastShotTime > _minTimeBetweenShots)
-            {
-                // Create vector from player to target coordinates
-                Vector2 projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
+            if (DateTime.Now - _lastShotTime <= _minTimeBetweenShots) return;
 
-                Projectile projectile = new Projectile((int) Position.X, (int) Position.Y, projectileTravelVector, _projectileSpeed, this);
+            // Create vector from player to target coordinates
+            var projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
 
-                Projectiles.Add(projectile);
-                _lastShotTime = DateTime.Now;
-            }
-        }
+            var projectile = new Projectile((int) Position.X, (int) Position.Y, projectileTravelVector, _projectileSpeed, this);
 
-        private void RemoveInactiveProjectiles()
-        {
-            for (var i = 0; i < Projectiles.Count; i++)
-            {
-                if (Projectiles[i].State == GameObjectState.Inactive)
-                {
-                    Projectiles.RemoveAt(i);
-                }
-            }
+            _map.CurrentRoom.Projectiles.Add(projectile);
+            _lastShotTime = DateTime.Now;
         }
     }
 }

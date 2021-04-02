@@ -4,41 +4,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DungeonCrawler.Rooms;
 
 namespace DungeonCrawler.GameObjects
 {
     public class Enemy : GameObject
     {
-        public List<Projectile> Projectiles { get; set; }
+        private Room _room;
+
         public float MaxHealth { get; }
         public float CurrentHealth { get; private set; }
-        private float _movingSpeed;
+        private readonly float _movingSpeed;
         private DateTime _lastShotTime;
-        private TimeSpan _minTimeBetweenShots;
+        private readonly TimeSpan _minTimeBetweenShots;
 
-        public Enemy(Vector2 position, int width, int height) : base(position, width, height)
+        public Enemy(Room room, Vector2 position, int width, int height) : base(position, width, height)
         {
-            Projectiles = new List<Projectile>();
+            _room = room;
             MaxHealth = 20;
             CurrentHealth = MaxHealth;
             _movingSpeed = 0.5F;
             _minTimeBetweenShots = TimeSpan.FromMilliseconds(100);
         }
 
-        public void Update(GameObject target, List<GameObject> otherGameObjectsInRoom)
+        public void Update(GameObject target)
         {
-            if (State == GameObjectState.Active)
-            {
-                ChaseTarget(target);
-                Shoot(target);
-            }
-
-            foreach (var projectile in Projectiles)
-            {
-                projectile.Update(otherGameObjectsInRoom);
-            }
-
-            RemoveInactiveProjectiles();
+            if (State != GameObjectState.Active) return;
+            ChaseTarget(target);
+            Shoot(target);
         }
 
         private void ChaseTarget(GameObject target)
@@ -54,40 +47,27 @@ namespace DungeonCrawler.GameObjects
 
         private void Shoot(GameObject target)
         {
-            if (DateTime.Now - _lastShotTime > _minTimeBetweenShots)
-            {
-                // Create vector from player to target coordinates
-                Vector2 projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
+            if (DateTime.Now - _lastShotTime <= _minTimeBetweenShots) return;
 
-                Projectile projectile =
-                    new Projectile((int) Position.X, (int) Position.Y, projectileTravelVector, 5, this);
+            // Create vector from player to target coordinates
+            var projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
 
-                Projectiles.Add(projectile);
-                _lastShotTime = DateTime.Now;
-            }
-        }
+            var projectile =
+                new Projectile((int) Position.X, (int) Position.Y, projectileTravelVector, 5, this);
 
-        private void RemoveInactiveProjectiles()
-        {
-            for (var i = 0; i < Projectiles.Count; i++)
-            {
-                if (Projectiles[i].State == GameObjectState.Inactive)
-                {
-                    Projectiles.RemoveAt(i);
-                }
-            }
+            _room.Projectiles.Add(projectile);
+            _lastShotTime = DateTime.Now;
         }
 
         public void ProjectileCollision(Projectile projectile)
         {
-            if (projectile.Source != this)
-            {
-                CurrentHealth -= projectile.Damage;
+            if (projectile.Source == this) return;
 
-                if (CurrentHealth <= 0)
-                {
-                    State = GameObjectState.Inactive;
-                }
+            CurrentHealth -= projectile.Damage;
+
+            if (CurrentHealth <= 0)
+            {
+                State = GameObjectState.Inactive;
             }
         }
     }
