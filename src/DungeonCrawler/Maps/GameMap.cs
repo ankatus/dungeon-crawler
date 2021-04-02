@@ -1,4 +1,5 @@
 ﻿using System;
+using DungeonCrawler.Rooms;
 
 namespace DungeonCrawler.Maps
 {
@@ -11,7 +12,7 @@ namespace DungeonCrawler.Maps
         public int HorizontalRooms { get; }
         public int VerticalRooms { get; }
         public Room[,] Rooms { get; }
-        public Room CurrentRoom => Rooms[CurrentRoomX, CurrentRoomY];
+        public Room CurrentRoom => Rooms[CurrentRoomY, CurrentRoomX];
 
         public int CurrentRoomX
         {

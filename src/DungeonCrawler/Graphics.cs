@@ -20,7 +20,8 @@ namespace DungeonCrawler
             Wall,
             Enemy,
             ButtonBackground,
-            HealthBar
+            HealthBar,
+            Door
         };
 
         public int WINDOW_WIDTH = 1280;
@@ -231,6 +232,7 @@ namespace DungeonCrawler
                 Projectile => TextureId.DefaultProjectile,
                 Wall => TextureId.Wall,
                 Enemy => TextureId.Enemy,
+                Door => TextureId.Door,
                 _ => throw new Exception()
             };
 

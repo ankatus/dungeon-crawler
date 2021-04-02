@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DungeonCrawler.GameObjects;
 using DungeonCrawler.Maps;
+using DungeonCrawler.Rooms;
 using DungeonCrawler.UIObjects;
 
 namespace DungeonCrawler
@@ -21,7 +22,7 @@ namespace DungeonCrawler
 
     public class Game1 : Game
     {
-        private Graphics _graphics;
+        private readonly Graphics _graphics;
         public DefaultMap Map { get; set; }
         public Player Player { get; set; }
         public Menu Menu { get; set; }
@@ -43,18 +44,18 @@ namespace DungeonCrawler
 
             Player = new Player(100, 100);
 
-            int WINDOW_WIDTH = 1280;
-            int WINDOW_HEIGHT = 720;
-            int width = 600;
-            int height = 400;
+            var windowWidth = 1280;
+            var windowHeight = 720;
+            var width = 600;
+            var height = 400;
 
-            Camera = new Camera((float) WINDOW_WIDTH / WINDOW_HEIGHT)
+            Camera = new Camera((float) windowWidth / windowHeight)
             {
                 Width = Map.HorizontalRooms * Map.RoomWidth,
                 TopLeft = new Point(0, 0),
             };
 
-            Menu = new Menu(this, (WINDOW_WIDTH) / 2, (WINDOW_HEIGHT) / 2, width, height);
+            Menu = new Menu(this, (windowWidth) / 2, (windowHeight) / 2, width, height);
 
             base.Initialize();
         }
@@ -129,6 +130,13 @@ namespace DungeonCrawler
 
             Player.Update(playerNewRotation, Map.CurrentRoom.AllObjects);
             Map.CurrentRoom.Update(Player);
+            foreach (var door in Map.CurrentRoom.Doors)
+            {
+                if (door.Activated)
+                {
+                    MovePlayerToNextRoom(door.Position);
+                }
+            }
         }
 
         protected override void Draw(GameTime gameTime)
@@ -141,12 +149,8 @@ namespace DungeonCrawler
             // Translate player position to screen space coordinates
             var pixelsPerUnit = (float) _graphics.WINDOW_WIDTH / Camera.Width;
 
-            (int x, int y) playerGlobalPosition = (
-                (int) Player.Position.X + Map.CurrentRoomX * Map.RoomWidth,
-                (int) Player.Position.Y + Map.CurrentRoomY * Map.RoomHeight);
-
-            (int x, int y) playerCameraRelativePosition = (playerGlobalPosition.x - Camera.TopLeft.X,
-                playerGlobalPosition.y - Camera.TopLeft.Y);
+            (int x, int y) playerCameraRelativePosition = ((int) Player.Position.X - Camera.TopLeft.X,
+                (int) Player.Position.Y - Camera.TopLeft.Y);
 
             var playerScreenSpacePosition = new Vector2(playerCameraRelativePosition.x * pixelsPerUnit,
                 playerCameraRelativePosition.y * pixelsPerUnit);
@@ -159,6 +163,52 @@ namespace DungeonCrawler
             var rotation = (float) Math.Atan2(y, x);
 
             return rotation;
+        }
+
+        private void MovePlayerToNextRoom(DoorPosition activatedDoorPosition)
+        {
+            var teleportPosition = new Vector2();
+            if (activatedDoorPosition is DoorPosition.Top)
+            {
+                if (Map.CurrentRoomY == 0) return;
+                Map.CurrentRoomY--;
+                var currentRoomPosition =
+                    new Vector2(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
+                teleportPosition.X = currentRoomPosition.X + Map.RoomWidth / 2;
+                teleportPosition.Y = currentRoomPosition.Y + Map.RoomHeight - Map.CurrentRoom.WallThickness - 50;
+            }
+            else if (activatedDoorPosition is DoorPosition.Right)
+            {
+                if (Map.CurrentRoomX == Map.HorizontalRooms - 1) return;
+                Map.CurrentRoomX++;
+                var currentRoomPosition =
+                    new Vector2(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
+                teleportPosition.X = currentRoomPosition.X + Map.CurrentRoom.WallThickness + 50;
+                teleportPosition.Y = currentRoomPosition.Y + Map.RoomHeight / 2;
+            }
+            else if (activatedDoorPosition is DoorPosition.Bottom)
+            {
+                if (Map.CurrentRoomY == Map.VerticalRooms - 1) return;
+                Map.CurrentRoomY++;
+                var currentRoomPosition =
+                    new Vector2(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
+                teleportPosition.X = currentRoomPosition.X + Map.RoomWidth / 2;
+                teleportPosition.Y = currentRoomPosition.Y + Map.CurrentRoom.WallThickness + 50;
+            }
+            else if (activatedDoorPosition is DoorPosition.Left)
+            {
+                if (Map.CurrentRoomX == 0) return;
+                Map.CurrentRoomX--;
+                var currentRoomPosition =
+                    new Vector2(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
+                teleportPosition.X = currentRoomPosition.X + Map.RoomWidth - Map.CurrentRoom.WallThickness - 50;
+                teleportPosition.Y = currentRoomPosition.Y + Map.RoomHeight / 2;
+            }
+
+            Player.Position = teleportPosition;
+
+            var nextRoomTopLeft = new Point(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
+            Camera.ZoomTo(nextRoomTopLeft, Map.RoomWidth, Map.RoomHeight);
         }
     }
 }

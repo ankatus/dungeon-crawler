@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DungeonCrawler.GameObjects
 {
@@ -23,7 +24,6 @@ namespace DungeonCrawler.GameObjects
         public void Update(List<GameObject> gameObjects)
         {
             Position += Velocity;
-
             var collisions = CollisionDetection.GetCollisions(this, gameObjects);
 
             foreach (var gameObject in collisions)
@@ -31,7 +31,7 @@ namespace DungeonCrawler.GameObjects
                 if (gameObject.Id == Source.Id)
                     continue;
 
-                if (gameObject is Wall)
+                if (gameObject is Wall or Door)
                 {
                     State = GameObjectState.Inactive;
                 }
