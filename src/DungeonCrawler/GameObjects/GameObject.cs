@@ -17,7 +17,6 @@ namespace DungeonCrawler.GameObjects
         public int Width { get; set; }
         public int Height { get; set; }
         public float Rotation { get; set; }
-        public virtual List<GameObject> Children { get; }  
         public Vector2 Velocity;
         public GameObjectState State { get; set; }
 
@@ -28,7 +27,6 @@ namespace DungeonCrawler.GameObjects
             Width = width;
             Height = height;
             State = GameObjectState.Active;
-            Children = new List<GameObject>();
         }
 
         protected GameObject(Vector2 position, int width, int height)
@@ -38,7 +36,6 @@ namespace DungeonCrawler.GameObjects
             Width = width;
             Height = height;
             State = GameObjectState.Active;
-            Children = new List<GameObject>();
         }
     }
 }

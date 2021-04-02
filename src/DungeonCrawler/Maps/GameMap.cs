@@ -1,5 +1,7 @@
 ﻿using System;
 using DungeonCrawler.Rooms;
+using DungeonCrawler.GameObjects;
+using Microsoft.Xna.Framework;
 
 namespace DungeonCrawler.Maps
 {
@@ -13,6 +15,7 @@ namespace DungeonCrawler.Maps
         public int VerticalRooms { get; }
         public Room[,] Rooms { get; }
         public Room CurrentRoom => Rooms[CurrentRoomY, CurrentRoomX];
+        public Player Player { get; }
 
         public int CurrentRoomX
         {
@@ -41,6 +44,65 @@ namespace DungeonCrawler.Maps
             HorizontalRooms = horizontalRooms;
             VerticalRooms = verticalRooms;
             Rooms = new Room[VerticalRooms, HorizontalRooms];
+            Player = new Player(100, 100);
+        }
+
+        public void Update(float playerNewRotation)
+        {
+            Player.Update(playerNewRotation, CurrentRoom.AllObjects);
+
+            CurrentRoom.Update(Player);
+
+            foreach (var door in CurrentRoom.Doors)
+            {
+                if (door.Activated)
+                {
+                    MovePlayerToNextRoom(door.DoorPosition);
+                }
+            }
+        }
+
+        private void MovePlayerToNextRoom(DoorPosition activatedDoorPosition)
+        {
+            var teleportPosition = new Vector2();
+            if (activatedDoorPosition is DoorPosition.Top)
+            {
+                if (CurrentRoomY == 0) return;
+                CurrentRoomY--;
+                var currentRoomPosition =
+                    new Vector2(CurrentRoomX * RoomWidth, CurrentRoomY * RoomHeight);
+                teleportPosition.X = currentRoomPosition.X + RoomWidth / 2;
+                teleportPosition.Y = currentRoomPosition.Y + RoomHeight - CurrentRoom.WallThickness - 50;
+            }
+            else if (activatedDoorPosition is DoorPosition.Right)
+            {
+                if (CurrentRoomX == HorizontalRooms - 1) return;
+                CurrentRoomX++;
+                var currentRoomPosition =
+                    new Vector2(CurrentRoomX * RoomWidth, CurrentRoomY * RoomHeight);
+                teleportPosition.X = currentRoomPosition.X + CurrentRoom.WallThickness + 50;
+                teleportPosition.Y = currentRoomPosition.Y + RoomHeight / 2;
+            }
+            else if (activatedDoorPosition is DoorPosition.Bottom)
+            {
+                if (CurrentRoomY == VerticalRooms - 1) return;
+                CurrentRoomY++;
+                var currentRoomPosition =
+                    new Vector2(CurrentRoomX * RoomWidth, CurrentRoomY * RoomHeight);
+                teleportPosition.X = currentRoomPosition.X + RoomWidth / 2;
+                teleportPosition.Y = currentRoomPosition.Y + CurrentRoom.WallThickness + 50;
+            }
+            else if (activatedDoorPosition is DoorPosition.Left)
+            {
+                if (CurrentRoomX == 0) return;
+                CurrentRoomX--;
+                var currentRoomPosition =
+                    new Vector2(CurrentRoomX * RoomWidth, CurrentRoomY * RoomHeight);
+                teleportPosition.X = currentRoomPosition.X + RoomWidth - CurrentRoom.WallThickness - 50;
+                teleportPosition.Y = currentRoomPosition.Y + RoomHeight / 2;
+            }
+
+            Player.Position = teleportPosition;
         }
     }
 }

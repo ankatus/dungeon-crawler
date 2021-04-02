@@ -85,7 +85,7 @@ namespace DungeonCrawler
             }
         }
 
-        public void Draw()
+        public void Draw(List<GameObject> gameObjects, List<UIObject> uiObjects)
         {
             _game.GraphicsDevice.Clear(Color.CornflowerBlue);
 
@@ -118,19 +118,14 @@ namespace DungeonCrawler
 
             DrawBlackBars(horizontalPadding, verticalPadding);
 
-            foreach (var room in _game.Map.Rooms)
+            foreach (var gameObject in gameObjects)
             {
-                foreach (var gameObject in room.AllObjects)
-                {
-                    DrawGameObject(gameObject, pixelsPerUnit, horizontalPadding, verticalPadding);
-                }
+                DrawGameObject(gameObject, pixelsPerUnit, horizontalPadding, verticalPadding);
             }
 
-            DrawGameObject(_game.Player, pixelsPerUnit, horizontalPadding, verticalPadding);
-
-            if (_game.GameState == GameState.Menu)
+            foreach (var uiObject in uiObjects)
             {
-                DrawUIObject(_game.Menu, pixelsPerUnit);
+                DrawUIObject(uiObject, pixelsPerUnit);
             }
 
             _spriteBatch.End();
@@ -139,66 +134,51 @@ namespace DungeonCrawler
         private void DrawGameObject(GameObject gameObject, float pixelsPerUnit, int horizontalPadding,
             int verticalPadding)
         {
-            var stack = new Stack<GameObject>();
+            if (gameObject.State == GameObjectState.Inactive) return;
+            var drawable = GameObjectToDrawable(gameObject, pixelsPerUnit, horizontalPadding, verticalPadding);
+            DrawDrawable(drawable);
 
-            stack.Push(gameObject);
-
-            while (stack.Count > 0)
-            {
-                var current = stack.Pop();
-
-                if (current.State != GameObjectState.Inactive)
-                {
-                    Drawable drawable = ConvertGameObjectToDrawable(current, pixelsPerUnit, horizontalPadding, verticalPadding);
-                    DrawDrawable(drawable);
-
-                    // Draw health bar for enemy (Need to be refactored)
-                    if (current is Enemy)
-                    {
-                        Enemy enemy = (current as Enemy);
-                        _spriteBatch.Draw(
-                            _textures[TextureId.HealthBar],
-                            drawable.Position,
-                            new Rectangle(0, 0, (int) (30 * (enemy.CurrentHealth / enemy.MaxHealth)), 5),
-                            Color.White,
-                            0,
-                            new Vector2(0, 0),
-                            1,
-                            SpriteEffects.None,
-                            HEALTH_BAR_LAYER
-                        );
-                    }
-                }
-
-                current.Children.ForEach(stack.Push);
-            }
+            // Draw health bar for enemy (Need to be refactored)
+            if (gameObject is not Enemy) return;
+            var enemy = gameObject as Enemy;
+            _spriteBatch.Draw(
+                _textures[TextureId.HealthBar],
+                drawable.Position,
+                new Rectangle(0, 0, (int) (30 * (enemy.CurrentHealth / enemy.MaxHealth)), 5),
+                Color.White,
+                0,
+                new Vector2(0, 0),
+                1,
+                SpriteEffects.None,
+                HEALTH_BAR_LAYER
+            );
         }
 
-        private void DrawUIObject(UIObject UIObject, float pixelsPerUnit)
+        private void DrawUIObject(UIObject UiObject, float pixelsPerUnit)
         {
             var stack = new Stack<UIObject>();
 
-            stack.Push(UIObject);
+            stack.Push(UiObject);
 
             while (stack.Count > 0)
             {
                 var current = stack.Pop();
 
-                if (current.State == UIObjectState.Active)
+                if (current.State != UIObjectState.Active) continue;
+
+                DrawDrawable(UIObjectToDrawable(current, pixelsPerUnit, 0, 0));
+
+                // Draw text on button (Need to be refactored)
+                if (current is Button && (current as Button).Text != "")
                 {
-                    DrawDrawable(ConvertUIObjectToDrawable(current, pixelsPerUnit, 0, 0));
+                    var btn = (current as Button);
+                    var text = btn.Text;
 
-                    // Draw text on button (Need to be refactored)
-                    if (current is Button && (current as Button).Text != "")
-                    {
-                        Button btn = (current as Button);
-                        string text = btn.Text;
+                    var textSize = _testFont.MeasureString(text);
+                    var textLocation = btn.Position - new Vector2(textSize.X / 2, textSize.Y / 2);
 
-                        Vector2 textSize = _testFont.MeasureString(text);
-                        Vector2 textLocation = btn.Position - new Vector2(textSize.X / 2, textSize.Y / 2);
-
-                        _spriteBatch.DrawString(_testFont, text, textLocation, Color.Red, 0, new Vector2(0, 0), 1, SpriteEffects.None, UI_TEXT_LAYER);
-                    }
+                    _spriteBatch.DrawString(_testFont, text, textLocation, Color.Red, 0, new Vector2(0, 0), 1,
+                        SpriteEffects.None, UI_TEXT_LAYER);
                 }
 
                 current.Children.ForEach(stack.Push);
@@ -220,7 +200,7 @@ namespace DungeonCrawler
             );
         }
 
-        private Drawable ConvertGameObjectToDrawable(GameObject gameObject, float pixelsPerUnit, int horizontalPadding,
+        private Drawable GameObjectToDrawable(GameObject gameObject, float pixelsPerUnit, int horizontalPadding,
             int verticalPadding)
         {
             var scaled = new List<TextureId>
@@ -272,8 +252,8 @@ namespace DungeonCrawler
             return drawableGameObject;
         }
 
-        private Drawable ConvertUIObjectToDrawable(UIObject uiObject, float pixelsPerUnit, int horizontalPadding,
-           int verticalPadding)
+        private Drawable UIObjectToDrawable(UIObject uiObject, float pixelsPerUnit, int horizontalPadding,
+            int verticalPadding)
         {
             var textureId = uiObject switch
             {

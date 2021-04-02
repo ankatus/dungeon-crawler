@@ -1,14 +1,9 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System.Diagnostics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using DungeonCrawler.GameObjects;
 using DungeonCrawler.Maps;
-using DungeonCrawler.Rooms;
 using DungeonCrawler.UIObjects;
 
 namespace DungeonCrawler
@@ -24,10 +19,9 @@ namespace DungeonCrawler
     {
         private readonly Graphics _graphics;
         public DefaultMap Map { get; set; }
-        public Player Player { get; set; }
         public Menu Menu { get; set; }
         public Camera Camera { get; private set; }
-        public GameState GameState { get; set; }
+        public GameState GameState { get; set; } 
 
         public Game1()
         {
@@ -41,8 +35,6 @@ namespace DungeonCrawler
         {
             _graphics.Initialize();
             Map = new DefaultMap();
-
-            Player = new Player(100, 100);
 
             var windowWidth = 1280;
             var windowHeight = 720;
@@ -67,6 +59,8 @@ namespace DungeonCrawler
 
         protected override void Update(GameTime gameTime)
         {
+            Menu.State = GameState == GameState.Menu ? UIObjectState.Active : UIObjectState.Inactive;
+
             switch (GameState)
             {
                 case GameState.Menu:
@@ -126,22 +120,26 @@ namespace DungeonCrawler
                 Camera.ZoomTo(currentRoomTopLeft, Map.RoomWidth, Map.RoomHeight);
             }
 
-            var playerNewRotation = GetAngleFromPlayerToCursor();
-
-            Player.Update(playerNewRotation, Map.CurrentRoom.AllObjects);
-            Map.CurrentRoom.Update(Player);
-            foreach (var door in Map.CurrentRoom.Doors)
-            {
-                if (door.Activated)
-                {
-                    MovePlayerToNextRoom(door.Position);
-                }
-            }
+            Map.Update(GetAngleFromPlayerToCursor());
+            
+            // var nextRoomTopLeft = new Point(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
+            // Camera.ZoomTo(nextRoomTopLeft, Map.RoomWidth, Map.RoomHeight);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            _graphics.Draw();
+            var gameObjects = new List<GameObject>();
+            gameObjects.Add(Map.Player);
+            gameObjects.AddRange(Map.Player.Projectiles);
+            foreach (var room in Map.Rooms)
+            {
+                gameObjects.AddRange(room.AllObjects);
+            }
+
+            var uiObjects = new List<UIObject>();
+            uiObjects.Add(Menu);
+
+            _graphics.Draw(gameObjects, uiObjects);
         }
 
         private float GetAngleFromPlayerToCursor()
@@ -149,8 +147,8 @@ namespace DungeonCrawler
             // Translate player position to screen space coordinates
             var pixelsPerUnit = (float) _graphics.WINDOW_WIDTH / Camera.Width;
 
-            (int x, int y) playerCameraRelativePosition = ((int) Player.Position.X - Camera.TopLeft.X,
-                (int) Player.Position.Y - Camera.TopLeft.Y);
+            (int x, int y) playerCameraRelativePosition = ((int) Map.Player.Position.X - Camera.TopLeft.X,
+                (int) Map.Player.Position.Y - Camera.TopLeft.Y);
 
             var playerScreenSpacePosition = new Vector2(playerCameraRelativePosition.x * pixelsPerUnit,
                 playerCameraRelativePosition.y * pixelsPerUnit);
@@ -163,52 +161,6 @@ namespace DungeonCrawler
             var rotation = (float) Math.Atan2(y, x);
 
             return rotation;
-        }
-
-        private void MovePlayerToNextRoom(DoorPosition activatedDoorPosition)
-        {
-            var teleportPosition = new Vector2();
-            if (activatedDoorPosition is DoorPosition.Top)
-            {
-                if (Map.CurrentRoomY == 0) return;
-                Map.CurrentRoomY--;
-                var currentRoomPosition =
-                    new Vector2(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
-                teleportPosition.X = currentRoomPosition.X + Map.RoomWidth / 2;
-                teleportPosition.Y = currentRoomPosition.Y + Map.RoomHeight - Map.CurrentRoom.WallThickness - 50;
-            }
-            else if (activatedDoorPosition is DoorPosition.Right)
-            {
-                if (Map.CurrentRoomX == Map.HorizontalRooms - 1) return;
-                Map.CurrentRoomX++;
-                var currentRoomPosition =
-                    new Vector2(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
-                teleportPosition.X = currentRoomPosition.X + Map.CurrentRoom.WallThickness + 50;
-                teleportPosition.Y = currentRoomPosition.Y + Map.RoomHeight / 2;
-            }
-            else if (activatedDoorPosition is DoorPosition.Bottom)
-            {
-                if (Map.CurrentRoomY == Map.VerticalRooms - 1) return;
-                Map.CurrentRoomY++;
-                var currentRoomPosition =
-                    new Vector2(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
-                teleportPosition.X = currentRoomPosition.X + Map.RoomWidth / 2;
-                teleportPosition.Y = currentRoomPosition.Y + Map.CurrentRoom.WallThickness + 50;
-            }
-            else if (activatedDoorPosition is DoorPosition.Left)
-            {
-                if (Map.CurrentRoomX == 0) return;
-                Map.CurrentRoomX--;
-                var currentRoomPosition =
-                    new Vector2(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
-                teleportPosition.X = currentRoomPosition.X + Map.RoomWidth - Map.CurrentRoom.WallThickness - 50;
-                teleportPosition.Y = currentRoomPosition.Y + Map.RoomHeight / 2;
-            }
-
-            Player.Position = teleportPosition;
-
-            var nextRoomTopLeft = new Point(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
-            Camera.ZoomTo(nextRoomTopLeft, Map.RoomWidth, Map.RoomHeight);
         }
     }
 }

@@ -6,16 +6,16 @@ namespace DungeonCrawler.GameObjects
     public class Door : GameObject
     {
         public bool Activated { get; private set; }
-        public DoorPosition Position { get; }
+        public DoorPosition DoorPosition { get; }
 
-        public Door(int x, int y, int width, int height, DoorPosition doorPosition) : base(x, y, width, height)
+        public Door(int x, int y, int width, int height, DoorPosition doorDoorPosition) : base(x, y, width, height)
         {
-            Position = doorPosition;
+            DoorPosition = doorDoorPosition;
         }
 
-        public Door(Vector2 position, int width, int height, DoorPosition doorPosition) : base(position, width, height)
+        public Door(Vector2 position, int width, int height, DoorPosition doorDoorPosition) : base(position, width, height)
         {
-            Position = doorPosition;
+            DoorPosition = doorDoorPosition;
         }
 
         public void Update(Player player)

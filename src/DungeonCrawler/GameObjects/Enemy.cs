@@ -9,7 +9,6 @@ namespace DungeonCrawler.GameObjects
 {
     public class Enemy : GameObject
     {
-        public override List<GameObject> Children => Projectiles.Cast<GameObject>().ToList();
         public List<Projectile> Projectiles { get; set; }
         public float MaxHealth { get; }
         public float CurrentHealth { get; private set; }

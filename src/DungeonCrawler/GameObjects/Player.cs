@@ -14,8 +14,6 @@ namespace DungeonCrawler.GameObjects
 
     public class Player : GameObject
     {
-        public override List<GameObject> Children => Projectiles.Cast<GameObject>().ToList();
-
         public List<Projectile> Projectiles { get; set; }
         private readonly int _movingSpeed;
         private readonly int _projectileSpeed;

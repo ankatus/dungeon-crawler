@@ -14,18 +14,18 @@ namespace DungeonCrawler
             Vector2 aP = a.Position;
             Vector2 aX = RotateVector(Vector2.UnitX, a.Rotation);
             Vector2 aY = RotateVector(Vector2.UnitY, a.Rotation);
-            float aW = (float)a.Width / 2;
-            float aH = (float)a.Height / 2;
+            float aW = (float) a.Width / 2;
+            float aH = (float) a.Height / 2;
 
             Vector2 bP = b.Position;
             Vector2 bX = RotateVector(Vector2.UnitX, b.Rotation);
             Vector2 bY = RotateVector(Vector2.UnitY, b.Rotation);
-            float bW = (float)b.Width / 2;
-            float bH = (float)b.Height / 2;
+            float bW = (float) b.Width / 2;
+            float bH = (float) b.Height / 2;
 
             Vector2 T = Vector2.Subtract(bP, aP);
 
-            List<Vector2> testableAxes = new() { aX, aY, bX, bY };
+            List<Vector2> testableAxes = new() {aX, aY, bX, bY};
 
             foreach (Vector2 L in testableAxes)
             {
@@ -49,26 +49,14 @@ namespace DungeonCrawler
         public static List<GameObject> GetCollisions(GameObject collider, List<GameObject> gameObjects)
         {
             var found = new List<GameObject>();
-            var stack = new Stack<GameObject>();
 
-            foreach (var gameObject in gameObjects)
+            foreach (var current in gameObjects)
             {
-                stack.Clear();
-                stack.Push(gameObject);
-
-                while (stack.Count > 0)
+                if (collider.Id != current.Id && IsThereCollision(collider, current))
                 {
-                    var current = stack.Pop();
-
-                    if (IsThereCollision(collider, current) && collider.Id != current.Id)
-                    {
-                        found.Add(current);
-                    }
-
-                    current.Children.ForEach(stack.Push);
+                    found.Add(current);
                 }
             }
-            
 
             return found;
         }
@@ -78,18 +66,18 @@ namespace DungeonCrawler
             Vector2 aP = a.Position;
             Vector2 aX = RotateVector(Vector2.UnitX, a.Rotation);
             Vector2 aY = RotateVector(Vector2.UnitY, a.Rotation);
-            float aW = (float)a.Width / 2;
-            float aH = (float)a.Height / 2;
+            float aW = (float) a.Width / 2;
+            float aH = (float) a.Height / 2;
 
             Vector2 bP = b.Position;
             Vector2 bX = RotateVector(Vector2.UnitX, b.Rotation);
             Vector2 bY = RotateVector(Vector2.UnitY, b.Rotation);
-            float bW = (float)b.Width / 2;
-            float bH = (float)b.Height / 2;
+            float bW = (float) b.Width / 2;
+            float bH = (float) b.Height / 2;
 
             Vector2 T = Vector2.Subtract(bP, aP);
 
-            List<Vector2> testableAxes = new() { aX, aY, bX, bY };
+            List<Vector2> testableAxes = new() {aX, aY, bX, bY};
 
             foreach (Vector2 L in testableAxes)
             {
@@ -113,23 +101,12 @@ namespace DungeonCrawler
         public static List<GameObject> GetOverlaps(GameObject collider, List<GameObject> gameObjects)
         {
             var found = new List<GameObject>();
-            var stack = new Stack<GameObject>();
 
-            foreach (var gameObject in gameObjects)
+            foreach (var current in gameObjects)
             {
-                stack.Clear();
-                stack.Push(gameObject);
-
-                while (stack.Count > 0)
+                if (collider.Id != current.Id && IsThereOverlap(collider, current))
                 {
-                    var current = stack.Pop();
-
-                    if (IsThereOverlap(collider, current) && collider.Id != current.Id)
-                    {
-                        found.Add(current);
-                    }
-
-                    current.Children.ForEach(stack.Push);
+                    found.Add(current);
                 }
             }
 
@@ -138,7 +115,8 @@ namespace DungeonCrawler
 
         public static Vector2 RotateVector(Vector2 v, double rotation)
         {
-            return new((float)(v.X * Math.Cos(rotation) - v.Y * Math.Sin(rotation)), (float)(v.X * Math.Sin(rotation) + v.Y * Math.Cos(rotation)));
+            return new((float) (v.X * Math.Cos(rotation) - v.Y * Math.Sin(rotation)),
+                (float) (v.X * Math.Sin(rotation) + v.Y * Math.Cos(rotation)));
         }
     }
 }

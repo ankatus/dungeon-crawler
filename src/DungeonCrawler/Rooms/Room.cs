@@ -18,7 +18,11 @@ namespace DungeonCrawler.Rooms
         public List<Wall> Walls { get; set; }
         public List<Door> Doors { get; set; }
         public List<Enemy> Enemies { get; set; }
-        public List<GameObject> AllObjects => Walls.Cast<GameObject>().Concat(Doors).Concat(Enemies).ToList();
+        public List<GameObject> AllObjects => new List<GameObject>()
+                                                .Concat(Walls)
+                                                .Concat(Doors)
+                                                .Concat(Enemies)
+                                                .ToList();
 
         protected Room(Vector2 position, int width, int height, List<DoorPosition> doorPositions)
         {
