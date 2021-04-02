@@ -14,6 +14,8 @@ namespace DungeonCrawler.GameObjects
         public float MaxHealth { get; }
         public float CurrentHealth { get; private set; }
         private float _movingSpeed;
+        private DateTime _lastShotTime;
+        private TimeSpan _minTimeBetweenShots;
 
         public Enemy(Vector2 position, int width, int height) : base(position, width, height)
         {
@@ -21,6 +23,7 @@ namespace DungeonCrawler.GameObjects
             MaxHealth = 20;
             CurrentHealth = MaxHealth;
             _movingSpeed = 0.5F;
+            _minTimeBetweenShots = TimeSpan.FromMilliseconds(100);
         }
 
         public void Update(GameObject target, List<GameObject> otherGameObjectsInRoom)
@@ -52,12 +55,17 @@ namespace DungeonCrawler.GameObjects
 
         private void Shoot(GameObject target)
         {
-            // Create vector from player to target coordinates
-            Vector2 projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
+            if (DateTime.Now - _lastShotTime > _minTimeBetweenShots)
+            {
+                // Create vector from player to target coordinates
+                Vector2 projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
 
-            Projectile projectile = new Projectile((int) Position.X, (int) Position.Y, projectileTravelVector, 5, this);
+                Projectile projectile =
+                    new Projectile((int) Position.X, (int) Position.Y, projectileTravelVector, 5, this);
 
-            Projectiles.Add(projectile);
+                Projectiles.Add(projectile);
+                _lastShotTime = DateTime.Now;
+            }
         }
 
         private void RemoveInactiveProjectiles()
