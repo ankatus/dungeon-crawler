@@ -42,7 +42,8 @@ namespace DungeonCrawler.GameObjects
                 }
                 else if (gameObject is Player)
                 {
-                    // Do stuff
+                    ((Player) gameObject).ProjectileCollision(this);
+                    State = GameObjectState.Inactive;
                 }
             }
         }

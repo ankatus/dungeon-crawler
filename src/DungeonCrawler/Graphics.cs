@@ -21,7 +21,8 @@ namespace DungeonCrawler
             Enemy,
             ButtonBackground,
             HealthBar,
-            Door
+            DoorOpen,
+            DoorClosed
         };
 
         public int WINDOW_WIDTH = 1280;
@@ -139,19 +140,36 @@ namespace DungeonCrawler
             DrawDrawable(drawable);
 
             // Draw health bar for enemy (Need to be refactored)
-            if (gameObject is not Enemy) return;
-            var enemy = gameObject as Enemy;
-            _spriteBatch.Draw(
-                _textures[TextureId.HealthBar],
-                drawable.Position,
-                new Rectangle(0, 0, (int) (30 * (enemy.CurrentHealth / enemy.MaxHealth)), 5),
-                Color.White,
-                0,
-                new Vector2(0, 0),
-                1,
-                SpriteEffects.None,
-                HEALTH_BAR_LAYER
-            );
+            if (gameObject is Enemy)
+            {
+                var enemy = gameObject as Enemy;
+                _spriteBatch.Draw(
+                    _textures[TextureId.HealthBar],
+                    drawable.Position,
+                    new Rectangle(0, 0, (int) (30 * (enemy.CurrentHealth / enemy.MaxHealth)), 5),
+                    Color.White,
+                    0,
+                    new Vector2(0, 0),
+                    1,
+                    SpriteEffects.None,
+                    HEALTH_BAR_LAYER
+                );
+            }
+            else if (gameObject is Player)
+            {
+                var player = gameObject as Player;
+                _spriteBatch.Draw(
+                    _textures[TextureId.HealthBar],
+                    drawable.Position,
+                    new Rectangle(0, 0, (int) (30 * (player.CurrentHealth / player.MaxHealth)), 5),
+                    Color.White,
+                    0,
+                    new Vector2(0, 0),
+                    1,
+                    SpriteEffects.None,
+                    HEALTH_BAR_LAYER
+                );
+            }
         }
 
         private void DrawUIObject(UIObject UiObject, float pixelsPerUnit)
@@ -177,6 +195,16 @@ namespace DungeonCrawler
                     var textSize = _testFont.MeasureString(text);
                     var textLocation = btn.Position - new Vector2(textSize.X / 2, textSize.Y / 2);
 
+                    _spriteBatch.DrawString(_testFont, text, textLocation, Color.Red, 0, new Vector2(0, 0), 1,
+                        SpriteEffects.None, UI_TEXT_LAYER);
+                }
+                else if (current is TextBlock)
+                {
+                    var textBlock = (current as TextBlock);
+                    var text = textBlock.Text;
+
+                    var textSize = _testFont.MeasureString(text);
+                    var textLocation = textBlock.Position;
                     _spriteBatch.DrawString(_testFont, text, textLocation, Color.Red, 0, new Vector2(0, 0), 1,
                         SpriteEffects.None, UI_TEXT_LAYER);
                 }
@@ -206,15 +234,34 @@ namespace DungeonCrawler
             var scaled = new List<TextureId>
                 {TextureId.Room, TextureId.Player, TextureId.DefaultProjectile, TextureId.Enemy};
 
-            var textureId = gameObject switch
+            TextureId textureId;
+            switch (gameObject)
             {
-                Player => TextureId.Player,
-                Projectile => TextureId.DefaultProjectile,
-                Wall => TextureId.Wall,
-                Enemy => TextureId.Enemy,
-                Door => TextureId.Door,
-                _ => throw new Exception()
-            };
+                case Player:
+                    textureId = TextureId.Player;
+                    break;
+                case Projectile:
+                    textureId = TextureId.DefaultProjectile;
+                    break;
+                case Wall:
+                    textureId = TextureId.Wall;
+                    break;
+                case Enemy:
+                    textureId = TextureId.Enemy;
+                    break;
+                case Door:
+                    if ((gameObject as Door).Open)
+                    {
+                        textureId = TextureId.DoorOpen;
+                    }
+                    else
+                    {
+                        textureId = TextureId.DoorClosed;
+                    }
+                    break;
+                default:
+                    throw new Exception();
+            }
 
             Vector2 scale;
             Vector2 origin;
@@ -259,6 +306,7 @@ namespace DungeonCrawler
             {
                 Button => TextureId.ButtonBackground,
                 Menu => TextureId.Default,
+                TextBlock => TextureId.Default,
                 _ => throw new Exception()
             };
 

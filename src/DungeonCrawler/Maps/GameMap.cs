@@ -2,6 +2,7 @@
 using DungeonCrawler.Rooms;
 using DungeonCrawler.GameObjects;
 using Microsoft.Xna.Framework;
+using System.Diagnostics;
 
 namespace DungeonCrawler.Maps
 {
@@ -53,11 +54,14 @@ namespace DungeonCrawler.Maps
 
             CurrentRoom.Update(Player);
 
-            foreach (var door in CurrentRoom.Doors)
+            if (CurrentRoom.Cleared)
             {
-                if (door.Activated)
+                foreach (var door in CurrentRoom.Doors)
                 {
-                    MovePlayerToNextRoom(door.DoorPosition);
+                    if (door.Activated)
+                    {
+                        MovePlayerToNextRoom(door.DoorPosition);
+                    }
                 }
             }
         }

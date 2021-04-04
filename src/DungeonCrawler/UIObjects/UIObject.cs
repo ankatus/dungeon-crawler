@@ -11,6 +11,8 @@ namespace DungeonCrawler.UIObjects
 
     public abstract class UIObject
     {
+        private static long _lastId;
+        public long Id { get; }
         public Vector2 Position { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
@@ -20,6 +22,7 @@ namespace DungeonCrawler.UIObjects
 
         protected UIObject(Vector2 position, int width, int height)
         {
+            Id = _lastId++;
             Position = position;
             Width = width;
             Height = height;

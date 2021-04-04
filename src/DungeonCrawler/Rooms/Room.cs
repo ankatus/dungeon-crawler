@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using DungeonCrawler.GameObjects;
 using Microsoft.Xna.Framework;
@@ -15,6 +16,7 @@ namespace DungeonCrawler.Rooms
         public int WallThickness => WALL_THICKNESS;
         public int Width { get; init; }
         public int Height { get; init; }
+        public bool Cleared { get; private set; }
         public List<Wall> Walls { get; set; }
         public List<Door> Doors { get; set; }
         public List<Enemy> Enemies { get; set; }
@@ -31,6 +33,7 @@ namespace DungeonCrawler.Rooms
             Position = position;
             Width = width;
             Height = height;
+            Cleared = false;
             Walls = new List<Wall>();
             Doors = new List<Door>();
             Enemies = new List<Enemy>();
@@ -42,25 +45,30 @@ namespace DungeonCrawler.Rooms
         {
             Enemies.ForEach(enemy => enemy.Update(player));
             Doors.ForEach(door => door.Update(player));
+
             var noProjectiles = new List<GameObject>()
                 .Concat(Walls)
                 .Concat(Doors)
                 .Concat(Enemies)
                 .ToList();
+            noProjectiles.Add(player);
+
             Projectiles.ForEach(projectile => projectile.Update(noProjectiles));
 
-            PruneProjectiles();
+            PruneInActiveObjects();
+
+            // Room is cleared when all enemies are defeated
+            if (Enemies.Any() == false)
+            {
+                Cleared = true;
+                Doors.ForEach(door => door.Open = true);
+            }
         }
 
-        private void PruneProjectiles()
+        private void PruneInActiveObjects()
         {
-            for (var i = 0; i < Projectiles.Count; i++)
-            {
-                if (Projectiles[i].State == GameObjectState.Inactive)
-                {
-                    Projectiles.RemoveAt(i);
-                }
-            }
+            Projectiles.RemoveAll(gameObject => gameObject.State == GameObjectState.Inactive);
+            Enemies.RemoveAll(gameObject => gameObject.State == GameObjectState.Inactive);
         }
 
         public void CreateSurroundingWalls(List<DoorPosition> doorPositions)
@@ -139,7 +147,7 @@ namespace DungeonCrawler.Rooms
                 var y = wallHeight / 2;
                 var center = new Vector2(WALL_THICKNESS / 2, y);
                 var topWall = new Wall(Position + center, WALL_THICKNESS, wallHeight);
-                
+
                 // Bottom wall
                 y = wallHeight + DOOR_WIDTH + wallHeight / 2;
                 center = new Vector2(WALL_THICKNESS / 2, y);
@@ -161,7 +169,7 @@ namespace DungeonCrawler.Rooms
 
             // Right
             if (doorPositions.Contains(DoorPosition.Right))
-            {                
+            {
                 // Draw two walls, with gap for the door in between
 
                 // Top wall
@@ -169,7 +177,7 @@ namespace DungeonCrawler.Rooms
                 var y = wallHeight / 2;
                 var center = new Vector2(Width - WALL_THICKNESS / 2, y);
                 var leftWall = new Wall(Position + center, WALL_THICKNESS, wallHeight);
-                
+
                 // Bottom wall
                 y = wallHeight + DOOR_WIDTH + wallHeight / 2;
                 center = new Vector2(Width - WALL_THICKNESS / 2, y);

@@ -68,7 +68,7 @@
 /processorParam:TextureFormat=Color
 /build:textures/DefaultProjectile.png
 
-#begin textures/Door.png
+#begin textures/DoorClosed.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -78,7 +78,19 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:textures/Door.png
+/build:textures/DoorClosed.png
+
+#begin textures/DoorOpen.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:textures/DoorOpen.png
 
 #begin textures/Enemy.png
 /importer:TextureImporter

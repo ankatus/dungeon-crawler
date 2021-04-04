@@ -15,6 +15,8 @@ namespace DungeonCrawler.GameObjects
 
     public class Player : GameObject
     {
+        public float MaxHealth { get; }
+        public float CurrentHealth { get; private set; }
         private readonly int _movingSpeed;
         private readonly int _projectileSpeed;
         private DateTime _lastShotTime;
@@ -27,6 +29,8 @@ namespace DungeonCrawler.GameObjects
             _movingSpeed = 3;
             _projectileSpeed = 5;
             _minTimeBetweenShots = TimeSpan.FromMilliseconds(100);
+            MaxHealth = 50;
+            CurrentHealth = MaxHealth;
         }
 
         public void Update(float newFacing)
@@ -70,15 +74,27 @@ namespace DungeonCrawler.GameObjects
             Position += Velocity;
 
             // If overlapping, move back until not overlapping
-            while (CheckWalls())
+            while (CheckCollision())
             {
                 Position -= Velocity / _movingSpeed;
             }
         }
 
-        private bool CheckWalls()
+        private bool CheckCollision()
         {
-            return CollisionDetection.GetOverlaps(this, _map.CurrentRoom.Walls.Cast<GameObject>().ToList()).Count > 0;
+            var gameObjects = new List<GameObject>();
+            gameObjects.AddRange(_map.CurrentRoom.Walls);
+
+            foreach (var door in _map.CurrentRoom.Doors)
+            {
+                // Check collision only with closed doors
+                if (door.Closed)
+                {
+                    gameObjects.Add(door);
+                }
+            }
+
+            return CollisionDetection.GetOverlaps(this, gameObjects).Count > 0;
         }
 
         private void Turn(float newRotation)
@@ -89,7 +105,7 @@ namespace DungeonCrawler.GameObjects
             Rotation = newRotation;
 
             // If there is overlap after rotation, undo rotation
-            if (CheckWalls())
+            if (CheckCollision())
             {
                 Rotation = previousRotation;
             }
@@ -106,6 +122,18 @@ namespace DungeonCrawler.GameObjects
 
             _map.CurrentRoom.Projectiles.Add(projectile);
             _lastShotTime = DateTime.Now;
+        }
+
+        public void ProjectileCollision(Projectile projectile)
+        {
+            if (projectile.Source == this) return;
+
+            CurrentHealth -= projectile.Damage;
+
+            if (CurrentHealth <= 0)
+            {
+                State = GameObjectState.Inactive;
+            }
         }
     }
 }

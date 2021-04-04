@@ -12,6 +12,8 @@ namespace DungeonCrawler
     {
         Menu,
         Playing,
+        Defeat,
+        Victory,
         Exit
     }
 
@@ -59,6 +61,12 @@ namespace DungeonCrawler
 
         protected override void Update(GameTime gameTime)
         {
+            if (Map.Player.State == GameObjectState.Inactive)
+            {
+                // Player is dead
+                GameState = GameState.Defeat;
+            }
+
             Menu.State = GameState == GameState.Menu ? UIObjectState.Active : UIObjectState.Inactive;
 
             switch (GameState)
@@ -72,7 +80,19 @@ namespace DungeonCrawler
                 case GameState.Playing:
                     GameLoop();
                     break;
+                case GameState.Defeat:
+                    Menu.InfoMessage = "DEFEAT";
+                    StartNewGame();
+                    break;
             }
+        }
+
+        private void StartNewGame()
+        {
+            Map = new DefaultMap();
+            Camera.TopLeft = new Point(0, 0);
+            Camera.Width = Map.HorizontalRooms * Map.RoomWidth;
+            GameState = GameState.Menu;
         }
 
         private void GameLoop()
