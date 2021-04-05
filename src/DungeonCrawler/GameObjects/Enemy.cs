@@ -60,6 +60,7 @@ namespace DungeonCrawler.GameObjects
                 {
                     actualTarget = localPosition + distanceVector / 2;
                 }
+
                 var path = Pathfinding.FindPath((localPosition / _room.RoomGraph.TranslationFactor).ToPoint(), (actualTarget / _room.RoomGraph.TranslationFactor).ToPoint(), _room.RoomGraph.Graph);
 
                 // If pathfinding failed, path will be empty
@@ -72,12 +73,12 @@ namespace DungeonCrawler.GameObjects
                 _ticksSincePathUpdate++;
             }
 
-            if ( _path is null || _path.Count == 0) return;
-            
+            if (_path is null || _path.Count == 0) return;
+
             // Remove the first position to make movement smoother
             if (_path.Count > 1) _path.RemoveAt(0);
 
-            var nextPosition = new Vector2(_path[0].X * _room.RoomGraph.TranslationFactor, _path[0].Y * _room.RoomGraph.TranslationFactor);
+            var nextPosition = new Vector2(_path[0].X * _room.RoomGraph.TranslationFactor, _path[0].Y * _room.RoomGraph.TranslationFactor) + _room.Position;
 
             // Remove "used" position
             _path.RemoveAt(0);
@@ -87,14 +88,14 @@ namespace DungeonCrawler.GameObjects
             // Move
             var travelDirection = Vector2.Normalize(Vector2.Subtract(nextPosition, Position));
             Position += travelDirection * _movingSpeed;
-            
+
             // // If overlapping, move back until not overlapping
             // while (CheckWalls())
             // {
             //     Position -= travelDirection * _movingSpeed;
             // }
         }
-        
+
         private bool CheckWalls()
         {
             return CollisionDetection.GetOverlaps(this, _room.Walls.Cast<GameObject>().ToList()).Count > 0;
