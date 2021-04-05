@@ -13,7 +13,20 @@ namespace DungeonCrawler.Maps
             {
                 for (var x = 0; x < HorizontalRooms; x++)
                 {
-                    Rooms[y, x] = new DefaultRoom(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth, RoomHeight);
+                    if (x == 0 && y == 0)
+                        Rooms[y, x] = new CornerRoom(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth, RoomHeight);
+                    else if (x == HorizontalRooms - 1 && y == 0)
+                        Rooms[y, x] = new CornerRoom(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth, RoomHeight,
+                            1);
+                    else if (x == HorizontalRooms - 1 && y == VerticalRooms - 1)
+                        Rooms[y, x] = new CornerRoom(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth, RoomHeight,
+                            2);
+                    else if (x == 0 && y == VerticalRooms - 1)
+                        Rooms[y, x] = new CornerRoom(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth, RoomHeight,
+                            3);
+                    else
+                        Rooms[y, x] = new DefaultRoom(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth,
+                            RoomHeight);
                 }
             }
         }

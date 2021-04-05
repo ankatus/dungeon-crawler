@@ -11,8 +11,7 @@ namespace DungeonCrawler.Rooms
         private const int WALL_THICKNESS = 10;
         private const int DOOR_WIDTH = 100;
 
-        protected readonly Vector2 Position;
-
+        public readonly Vector2 Position;
         public int WallThickness => WALL_THICKNESS;
         public int Width { get; init; }
         public int Height { get; init; }
@@ -21,14 +20,16 @@ namespace DungeonCrawler.Rooms
         public List<Door> Doors { get; set; }
         public List<Enemy> Enemies { get; set; }
         public List<Projectile> Projectiles { get; }
-        public List<GameObject> AllObjects => new List<GameObject>()
-                                                .Concat(Walls)
-                                                .Concat(Doors)
-                                                .Concat(Enemies)
-                                                .Concat(Projectiles)
-                                                .ToList();
+        public RoomGraph RoomGraph { get; }
 
-        protected Room(Vector2 position, int width, int height, List<DoorPosition> doorPositions)
+        public List<GameObject> AllObjects => new List<GameObject>()
+            .Concat(Walls)
+            .Concat(Doors)
+            .Concat(Enemies)
+            .Concat(Projectiles)
+            .ToList();
+
+        protected Room(Vector2 position, int width, int height)
         {
             Position = position;
             Width = width;
@@ -38,7 +39,7 @@ namespace DungeonCrawler.Rooms
             Doors = new List<Door>();
             Enemies = new List<Enemy>();
             Projectiles = new List<Projectile>();
-            CreateSurroundingWalls(doorPositions);
+            RoomGraph = new RoomGraph(this, new Enemy(this, Vector2.Zero, 0, 0));
         }
 
         public void Update(Player player)
@@ -71,7 +72,7 @@ namespace DungeonCrawler.Rooms
             Enemies.RemoveAll(gameObject => gameObject.State == GameObjectState.Inactive);
         }
 
-        public void CreateSurroundingWalls(List<DoorPosition> doorPositions)
+        protected void CreateSurroundingWalls(List<DoorPosition> doorPositions)
         {
             // Top
             if (doorPositions.Contains(DoorPosition.Top))
@@ -194,7 +195,8 @@ namespace DungeonCrawler.Rooms
             }
             else
             {
-                Walls.Add(new Wall(Position + new Vector2(Width - WALL_THICKNESS / 2, Height / 2), WALL_THICKNESS, Height));
+                Walls.Add(new Wall(Position + new Vector2(Width - WALL_THICKNESS / 2, Height / 2), WALL_THICKNESS,
+                    Height));
             }
         }
     }
