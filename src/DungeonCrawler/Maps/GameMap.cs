@@ -45,7 +45,9 @@ namespace DungeonCrawler.Maps
             HorizontalRooms = horizontalRooms;
             VerticalRooms = verticalRooms;
             Rooms = new Room[VerticalRooms, HorizontalRooms];
-            Player = new Player(this, 100, 100);
+            CurrentRoomX = 0;
+            CurrentRoomY = 0;
+            Player = new Player(this, CurrentRoomX * RoomWidth + 100, CurrentRoomY * RoomHeight + 100);
         }
 
         public void Update(float playerNewRotation)

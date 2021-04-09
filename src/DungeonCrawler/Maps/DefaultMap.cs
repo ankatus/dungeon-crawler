@@ -24,9 +24,21 @@ namespace DungeonCrawler.Maps
                     else if (x == 0 && y == VerticalRooms - 1)
                         Rooms[y, x] = new CornerRoom(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth, RoomHeight,
                             3);
-                    else
+                    else if (x == 1 && y == 1)
                         Rooms[y, x] = new DefaultRoom(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth,
                             RoomHeight);
+                    else if (x == 1 && y == 0)
+                        Rooms[y, x] = new SideRoom(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth, RoomHeight,
+                            0);
+                    else if (x == 2 && y == 1)
+                        Rooms[y, x] = new SideRoom(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth, RoomHeight,
+                            1);
+                    else if (x == 1 && y == 2)
+                        Rooms[y, x] = new SideRoom(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth, RoomHeight,
+                            2);
+                    else if (x == 0 && y == 1)
+                        Rooms[y, x] = new SideRoom(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth, RoomHeight,
+                            3);
                 }
             }
         }
