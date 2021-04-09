@@ -8,18 +8,29 @@ namespace DungeonCrawler.GameObjects
 {
     public class Projectile : GameObject
     {
-        public GameObject Source { get; }
+        public long SourceId { get; }
         public int Damage { get; set; }
 
-        public Projectile(int x, int y, Vector2 travelVector, int speed, GameObject source) : base(x, y, 6, 2)
+        public Projectile(int x, int y, Vector2 travelVector, float speed, long sourceId) : base(x, y, 6, 2)
         {
             Velocity = Vector2.Normalize(travelVector) * speed;
 
             Rotation = (float)Math.Atan2(Velocity.Y, Velocity.X);
 
-            Source = source;
+            SourceId = sourceId;
             Damage = 1;
         }
+
+        public Projectile(Vector2 position, Vector2 travelVector, float speed, long sourceId) : base(position, 6, 2)
+        {
+            Velocity = Vector2.Normalize(travelVector) * speed;
+
+            Rotation = (float) Math.Atan2(Velocity.Y, Velocity.X);
+
+            SourceId = sourceId;
+            Damage = 1;
+        }
+
 
         public void Update(List<GameObject> gameObjects)
         {
@@ -28,7 +39,7 @@ namespace DungeonCrawler.GameObjects
 
             foreach (var gameObject in collisions)
             {
-                if (gameObject.Id == Source.Id)
+                if (gameObject.Id == SourceId)
                     continue;
 
                 if (gameObject is Wall or Door)

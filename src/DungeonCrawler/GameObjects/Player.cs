@@ -1,12 +1,7 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DungeonCrawler.Guns;
 using DungeonCrawler.Maps;
 
 namespace DungeonCrawler.GameObjects
@@ -15,10 +10,11 @@ namespace DungeonCrawler.GameObjects
 
     public class Player : GameObject
     {
+        public List<Gun> Guns { get; }
+        public Gun ActiveGun { get; private set; }
         public float MaxHealth { get; }
         public float CurrentHealth { get; private set; }
         private readonly int _movingSpeed;
-        private readonly int _projectileSpeed;
         private DateTime _lastShotTime;
         private readonly TimeSpan _minTimeBetweenShots;
         private readonly GameMap _map;
@@ -27,10 +23,11 @@ namespace DungeonCrawler.GameObjects
         {
             _map = map;
             _movingSpeed = 3;
-            _projectileSpeed = 5;
             _minTimeBetweenShots = TimeSpan.FromMilliseconds(100);
             MaxHealth = 50;
             CurrentHealth = MaxHealth;
+            Guns = new List<Gun> {new DefaultGun(Id)};
+            ActiveGun = Guns[0];
         }
 
         public void Update(float newFacing)
@@ -113,20 +110,16 @@ namespace DungeonCrawler.GameObjects
 
         private void Shoot()
         {
-            if (DateTime.Now - _lastShotTime <= _minTimeBetweenShots) return;
-
             // Create vector from player to target coordinates
             var projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
 
-            var projectile = new Projectile((int) Position.X, (int) Position.Y, projectileTravelVector, _projectileSpeed, this);
-
-            _map.CurrentRoom.Projectiles.Add(projectile);
-            _lastShotTime = DateTime.Now;
+            _map.CurrentRoom.Projectiles.AddRange(ActiveGun.Shoot(Position, projectileTravelVector));
+            
         }
 
         public void ProjectileCollision(Projectile projectile)
         {
-            if (projectile.Source == this) return;
+            if (projectile.SourceId == Id) return;
 
             CurrentHealth -= projectile.Damage;
 
