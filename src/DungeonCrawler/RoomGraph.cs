@@ -15,7 +15,7 @@ namespace DungeonCrawler
 
     public class RoomGraph
     {
-        private const int TRANSLATION_FACTOR = 4;
+        private const int TRANSLATION_FACTOR = 2;
 
         private readonly Room _room;
         private readonly int _actorWidth;
@@ -36,7 +36,7 @@ namespace DungeonCrawler
         {
             foreach (var wall in _room.Walls)
             {
-                var translatedPosition = wall.Position / TRANSLATION_FACTOR;
+                var translatedPosition = (wall.Position - _room.Position) / TRANSLATION_FACTOR;
                 var translatedWidth = wall.Width / TRANSLATION_FACTOR;
                 var translatedHeight = wall.Height / TRANSLATION_FACTOR;
                 var translatedActorWidth = _actorWidth / TRANSLATION_FACTOR;
