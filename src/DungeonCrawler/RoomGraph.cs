@@ -15,7 +15,7 @@ namespace DungeonCrawler
 
     public class RoomGraph
     {
-        private const int TRANSLATION_FACTOR = 2;
+        private const int TRANSLATION_FACTOR = 4;
 
         private readonly Room _room;
         private readonly int _actorWidth;
