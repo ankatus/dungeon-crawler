@@ -10,36 +10,37 @@ namespace DungeonCrawler.UIObjects
 {
     public class Menu : UIObject
     {
-        private Game1 _game;
-
-        private long infoMessageId;
         public string InfoMessage
         {
             set
             {
-                foreach (UIObject uiObject in Children)
-                {
-                    if (uiObject.Id == infoMessageId)
-                    {
-                        (uiObject as TextBlock).Text = value;
-                    }
-                }
+                _infoMessage.Text = value;
             }
         }
+        private TextBlock _infoMessage;
+        private Dictionary<string, Action> _buttonActions;
+        private Vector2 _nextButtonPosition;
 
-        public Menu(Game1 game, int x, int y, int width, int height) : base(new Vector2(x, y), width, height)
+        public Menu(Vector2 position, int width, int height) : base(position, width, height)
         {
-            _game = game;
-            Children.Add(new Button("Continue", x, y - 100, 100, 30));
-            Children.Add(new Button("Exit", x, y + 100, 100, 30));
+            _infoMessage = new TextBlock("", position, 200, 50);
+            Children.Add(_infoMessage);
 
-            TextBlock textBlock = new TextBlock("", Position, 200, 50);
-            infoMessageId = textBlock.Id;
-            Children.Add(textBlock);
+            _nextButtonPosition = position - new Vector2(0, height / 2 - 30);
+            _buttonActions = new Dictionary<string, Action>();
+        }
+
+        public void AddButton(string text, Action a)
+        {
+            _buttonActions.Add(text, a);
+            Children.Add(new Button(text, _nextButtonPosition, 200, 30));
+            _nextButtonPosition += new Vector2(0, 40);
         }
 
         public void Update()
         {
+            State = UIObjectState.Active;
+
             foreach (UIObject uiObject in Children)
             {
                 if (uiObject is Button)
@@ -48,17 +49,7 @@ namespace DungeonCrawler.UIObjects
 
                     if (button.IsPressed())
                     {
-                        switch (button.Text)
-                        {
-                            case "Continue":
-                                _game.GameState = GameState.Playing;
-                                break;
-                            case "Exit":
-                                _game.GameState = GameState.Exit;
-                                break;
-                            default:
-                                break;
-                        }
+                        _buttonActions[button.Text]();
                     }
                 }
             }

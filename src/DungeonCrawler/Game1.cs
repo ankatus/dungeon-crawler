@@ -10,7 +10,8 @@ namespace DungeonCrawler
 {
     public enum GameState
     {
-        Menu,
+        MainMenu,
+        PauseMenu,
         Playing,
         Defeat,
         Victory,
@@ -21,13 +22,14 @@ namespace DungeonCrawler
     {
         private readonly Graphics _graphics;
         public DefaultMap Map { get; set; }
-        public Menu Menu { get; set; }
+        public Menu MainMenu { get; set; }
+        public Menu PauseMenu { get; set; }
         public Camera Camera { get; private set; }
-        public GameState GameState { get; set; } 
+        public GameState GameState { get; set; }
 
         public Game1()
         {
-            GameState = GameState.Menu;
+            GameState = GameState.MainMenu;
             _graphics = new Graphics(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
@@ -49,7 +51,14 @@ namespace DungeonCrawler
                 TopLeft = new Point(0, 0),
             };
 
-            Menu = new Menu(this, (windowWidth) / 2, (windowHeight) / 2, width, height);
+            MainMenu = new Menu(new Vector2((windowWidth) / 2, (windowHeight) / 2), width, height);
+            MainMenu.AddButton("Start new game", StartNewGame);
+            MainMenu.AddButton("Options", () => { });
+            MainMenu.AddButton("Exit", () => { GameState = GameState.Exit; });
+
+            PauseMenu = new Menu(new Vector2((windowWidth) / 2, (windowHeight) / 2), width, height);
+            PauseMenu.AddButton("Continue", () => { GameState = GameState.Playing; });
+            PauseMenu.AddButton("Exit to main menu", () => { GameState = GameState.MainMenu; });
 
             base.Initialize();
         }
@@ -61,18 +70,49 @@ namespace DungeonCrawler
 
         protected override void Update(GameTime gameTime)
         {
+            // Check if game is won
+            var victory = true;
+            foreach (var room in Map.Rooms)
+            {
+                // If all rooms cleared, game is won
+                if (!room.Cleared)
+                {
+                    victory = false;
+                    break;
+                }
+            }
+
+            if (victory)
+            {
+                GameState = GameState.Victory;
+            }
+
+            // Check if game is lost
             if (Map.Player.State == GameObjectState.Inactive)
             {
                 // Player is dead
                 GameState = GameState.Defeat;
             }
 
-            Menu.State = GameState == GameState.Menu ? UIObjectState.Active : UIObjectState.Inactive;
+            // If game is not in main menu set menu to inactive
+            if (GameState != GameState.MainMenu)
+            {
+                MainMenu.State = UIObjectState.Inactive;
+            }
+
+            // If game is not in pause menu set menu to inactive
+            if (GameState != GameState.PauseMenu)
+            {
+                PauseMenu.State = UIObjectState.Inactive;
+            }
 
             switch (GameState)
             {
-                case GameState.Menu:
-                    Menu.Update();
+                case GameState.MainMenu:
+                    MainMenu.Update();
+                    break;
+                case GameState.PauseMenu:
+                    PauseMenu.Update();
                     break;
                 case GameState.Exit:
                     Exit();
@@ -81,24 +121,38 @@ namespace DungeonCrawler
                     GameLoop();
                     break;
                 case GameState.Defeat:
-                    Menu.InfoMessage = "DEFEAT";
-                    StartNewGame();
+                    PrepareNewGame();
+                    MainMenu.InfoMessage = "Defeat";
+                    GameState = GameState.MainMenu;
+                    break;
+                case GameState.Victory:
+                    PrepareNewGame();
+                    MainMenu.InfoMessage = "Victory!";
+                    GameState = GameState.MainMenu;
                     break;
             }
         }
 
         private void StartNewGame()
         {
+            PrepareNewGame();
+            GameState = GameState.Playing;
+        }
+
+        private void PrepareNewGame()
+        {
             Map = new DefaultMap();
             Camera.TopLeft = new Point(0, 0);
             Camera.Width = Map.HorizontalRooms * Map.RoomWidth;
-            GameState = GameState.Menu;
         }
 
         private void GameLoop()
         {
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
-                GameState = GameState.Menu;
+            {
+                GameState = GameState.PauseMenu;
+                return;
+            }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Add))
             {
@@ -141,7 +195,7 @@ namespace DungeonCrawler
             }
 
             Map.Update(GetAngleFromPlayerToCursor());
-            
+
             // var nextRoomTopLeft = new Point(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
             // Camera.ZoomTo(nextRoomTopLeft, Map.RoomWidth, Map.RoomHeight);
         }
@@ -156,7 +210,8 @@ namespace DungeonCrawler
             }
 
             var uiObjects = new List<UIObject>();
-            uiObjects.Add(Menu);
+            uiObjects.Add(MainMenu);
+            uiObjects.Add(PauseMenu);
 
             _graphics.Draw(gameObjects, uiObjects);
         }

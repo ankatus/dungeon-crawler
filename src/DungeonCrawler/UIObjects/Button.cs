@@ -14,13 +14,7 @@ namespace DungeonCrawler.UIObjects
         private ButtonState previousButtonState;
         public string Text { get; }
 
-        public Button(int x, int y, int width, int height) : base(new Vector2(x, y), width, height)
-        {
-            previousButtonState = ButtonState.Released;
-            Text = "";
-        }
-
-        public Button(string text, int x, int y, int width, int height) : base(new Vector2(x, y), width, height)
+        public Button(string text, Vector2 position, int width, int height) : base(position, width, height)
         {
             previousButtonState = ButtonState.Released;
             Text = text;
