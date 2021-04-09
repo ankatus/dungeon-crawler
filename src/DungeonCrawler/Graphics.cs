@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using DungeonCrawler.GameObjects;
+using DungeonCrawler.GameObjects.Items;
 using DungeonCrawler.UIObjects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -22,7 +23,9 @@ namespace DungeonCrawler
             ButtonBackground,
             HealthBar,
             DoorOpen,
-            DoorClosed
+            DoorClosed,
+            ShotgunItem,
+            HealthPack
         };
 
         public int WINDOW_WIDTH = 1280;
@@ -231,8 +234,7 @@ namespace DungeonCrawler
         private Drawable GameObjectToDrawable(GameObject gameObject, float pixelsPerUnit, int horizontalPadding,
             int verticalPadding)
         {
-            var scaled = new List<TextureId>
-                {TextureId.Room, TextureId.Player, TextureId.DefaultProjectile, TextureId.Enemy};
+            var notScaled = new List<TextureId> { TextureId.Wall };
 
             TextureId textureId;
             switch (gameObject)
@@ -259,6 +261,12 @@ namespace DungeonCrawler
                         textureId = TextureId.DoorClosed;
                     }
                     break;
+                case HealthPack:
+                    textureId = TextureId.HealthPack;
+                    break;
+                case ShotgunItem:
+                    textureId = TextureId.ShotgunItem;
+                    break;
                 default:
                     throw new Exception();
             }
@@ -267,18 +275,18 @@ namespace DungeonCrawler
             Vector2 origin;
             Rectangle source;
             var texture = _textures[textureId];
-            if (scaled.Contains(textureId))
+            if (notScaled.Contains(textureId))
+            {
+                scale = Vector2.One * pixelsPerUnit;
+                origin = new Vector2((float) gameObject.Width / 2, (float) gameObject.Height / 2);
+                source = new Rectangle(0, 0, gameObject.Width, gameObject.Height);
+            }
+            else
             {
                 scale = new Vector2(gameObject.Width * pixelsPerUnit / texture.Width,
                     gameObject.Height * pixelsPerUnit / texture.Height);
                 origin = new Vector2((float) texture.Width / 2, (float) texture.Height / 2);
                 source = new Rectangle(0, 0, texture.Width, texture.Height);
-            }
-            else
-            {
-                scale = Vector2.One * pixelsPerUnit;
-                origin = new Vector2((float) gameObject.Width / 2, (float) gameObject.Height / 2);
-                source = new Rectangle(0, 0, gameObject.Width, gameObject.Height);
             }
 
             var drawPosition = (gameObject.Position - _game.Camera.TopLeft.ToVector2()) * pixelsPerUnit;

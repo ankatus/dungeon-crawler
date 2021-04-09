@@ -11,23 +11,23 @@ namespace DungeonCrawler.GameObjects
     public class Player : GameObject
     {
         public List<Gun> Guns { get; }
-        public Gun ActiveGun { get; private set; }
+        public Gun ActiveGun { get { return Guns[activeGunIndex]; } }
         public float MaxHealth { get; }
-        public float CurrentHealth { get; private set; }
+        public float CurrentHealth { get; set; }
         private readonly int _movingSpeed;
-        private DateTime _lastShotTime;
-        private readonly TimeSpan _minTimeBetweenShots;
         private readonly GameMap _map;
+        private int activeGunIndex;
 
         public Player(GameMap map, int x, int y) : base(x, y, 10, 30)
         {
             _map = map;
             _movingSpeed = 3;
-            _minTimeBetweenShots = TimeSpan.FromMilliseconds(100);
             MaxHealth = 50;
             CurrentHealth = MaxHealth;
-            Guns = new List<Gun> {new DefaultGun(Id)};
-            ActiveGun = Guns[0];
+            var defaultGun = new DefaultGun(Id);
+            Guns = new List<Gun>();
+            Guns.Add(defaultGun);
+            activeGunIndex = 0;
         }
 
         public void Update(float newFacing)
@@ -43,6 +43,20 @@ namespace DungeonCrawler.GameObjects
             if (InputHandler.Inputs[InputHandler.InputName.Right].IsActivated()) Move(Direction.Right);
 
             if (InputHandler.Inputs[InputHandler.InputName.Shoot].IsActivated()) Shoot();
+
+            if (InputHandler.Inputs[InputHandler.InputName.ChangeWeapon1].IsActivated()) ChangeWeapon(0);
+
+            if (InputHandler.Inputs[InputHandler.InputName.ChangeWeapon2].IsActivated()) ChangeWeapon(1);
+
+            if (InputHandler.Inputs[InputHandler.InputName.ChangeWeapon3].IsActivated()) ChangeWeapon(2);
+        }
+
+        private void ChangeWeapon(int gunIndex)
+        {
+            if (gunIndex < Guns.Count)
+            {
+                activeGunIndex = gunIndex;
+            }
         }
 
         private void Move(Direction direction)
@@ -114,7 +128,6 @@ namespace DungeonCrawler.GameObjects
             var projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
 
             _map.CurrentRoom.Projectiles.AddRange(ActiveGun.Shoot(Position, projectileTravelVector));
-            
         }
 
         public void ProjectileCollision(Projectile projectile)

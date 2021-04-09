@@ -9,19 +9,9 @@ namespace DungeonCrawler.GameObjects
     public class Projectile : GameObject
     {
         public long SourceId { get; }
-        public int Damage { get; set; }
+        public float Damage { get; set; }
 
         public Projectile(int x, int y, Vector2 travelVector, float speed, long sourceId) : base(x, y, 6, 2)
-        {
-            Velocity = Vector2.Normalize(travelVector) * speed;
-
-            Rotation = (float)Math.Atan2(Velocity.Y, Velocity.X);
-
-            SourceId = sourceId;
-            Damage = 1;
-        }
-
-        public Projectile(Vector2 position, Vector2 travelVector, float speed, long sourceId) : base(position, 6, 2)
         {
             Velocity = Vector2.Normalize(travelVector) * speed;
 
@@ -29,6 +19,16 @@ namespace DungeonCrawler.GameObjects
 
             SourceId = sourceId;
             Damage = 1;
+        }
+
+        public Projectile(Vector2 position, Vector2 travelVector, float damage, float speed, long sourceId) : base(position, 6, 2)
+        {
+            Velocity = Vector2.Normalize(travelVector) * speed;
+
+            Rotation = (float) Math.Atan2(Velocity.Y, Velocity.X);
+
+            SourceId = sourceId;
+            Damage = damage;
         }
 
 
@@ -48,7 +48,7 @@ namespace DungeonCrawler.GameObjects
                 }
                 else if (gameObject is Enemy)
                 {
-                    ((Enemy)gameObject).ProjectileCollision(this);
+                    ((Enemy) gameObject).ProjectileCollision(this);
                     State = GameObjectState.Inactive;
                 }
                 else if (gameObject is Player)

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using DungeonCrawler.GameObjects;
+using DungeonCrawler.GameObjects.Items;
 using Microsoft.Xna.Framework;
 
 namespace DungeonCrawler.Rooms
@@ -20,6 +21,7 @@ namespace DungeonCrawler.Rooms
         public List<Door> Doors { get; set; }
         public List<Enemy> Enemies { get; set; }
         public List<Projectile> Projectiles { get; }
+        public List<Item> Items { get; }
         public RoomGraph RoomGraph { get; }
 
         public List<GameObject> AllObjects => new List<GameObject>()
@@ -27,6 +29,7 @@ namespace DungeonCrawler.Rooms
             .Concat(Doors)
             .Concat(Enemies)
             .Concat(Projectiles)
+            .Concat(Items)
             .ToList();
 
         protected Room(Vector2 position, int width, int height)
@@ -39,6 +42,7 @@ namespace DungeonCrawler.Rooms
             Doors = new List<Door>();
             Enemies = new List<Enemy>();
             Projectiles = new List<Projectile>();
+            Items = new List<Item>();
             RoomGraph = new RoomGraph(this, new Enemy(this, Vector2.Zero, 0, 0));
         }
 
@@ -46,15 +50,16 @@ namespace DungeonCrawler.Rooms
         {
             Enemies.ForEach(enemy => enemy.Update(player));
             Doors.ForEach(door => door.Update(player));
+            Items.ForEach(item => item.Update(player));
 
-            var noProjectiles = new List<GameObject>()
+            var projectileCollisionObjects = new List<GameObject>()
                 .Concat(Walls)
                 .Concat(Doors)
                 .Concat(Enemies)
                 .ToList();
-            noProjectiles.Add(player);
+            projectileCollisionObjects.Add(player);
 
-            Projectiles.ForEach(projectile => projectile.Update(noProjectiles));
+            Projectiles.ForEach(projectile => projectile.Update(projectileCollisionObjects));
 
             PruneInActiveObjects();
 
@@ -70,6 +75,7 @@ namespace DungeonCrawler.Rooms
         {
             Projectiles.RemoveAll(gameObject => gameObject.State == GameObjectState.Inactive);
             Enemies.RemoveAll(gameObject => gameObject.State == GameObjectState.Inactive);
+            Items.RemoveAll(gameObject => gameObject.State == GameObjectState.Inactive);
         }
 
         protected void CreateSurroundingWalls(List<DoorPosition> doorPositions)

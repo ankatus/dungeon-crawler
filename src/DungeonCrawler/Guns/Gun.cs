@@ -7,24 +7,26 @@ namespace DungeonCrawler.Guns
 {
     public abstract class Gun
     {
-        private const float BASE_DAMAGE = 1.0f;
-        private const float BASE_SPEED = 1.0f;
-        private const float BASE_FIRERATE = 1.0f;
-
-        protected DateTime LastShot { get; set; }
         protected long OwnerId { get; }
-
-        public float Damage => BASE_DAMAGE * DamageMultiplier;
-        public float Speed => BASE_SPEED * SpeedMultiplier;
-        public float FireRate => BASE_FIRERATE * FireRateMultiplier;
+        protected DateTime LastShot { get; set; }
+        public float BaseDamage { get; protected set; }
+        public float BaseSpeed { get; protected set; }
+        public float BaseFirerate { get; protected set; }
         public float DamageMultiplier { get; set; }
         public float SpeedMultiplier { get; set; }
         public float FireRateMultiplier { get; set; }
+        public float Damage => BaseDamage * DamageMultiplier;
+        public float Speed => BaseSpeed * SpeedMultiplier;
+        public float FireRate => BaseFirerate * FireRateMultiplier;
+
         protected bool CanFire => (DateTime.Now - LastShot > TimeSpan.FromSeconds(1) / FireRate);
 
         protected Gun(long ownerId)
         {
             OwnerId = ownerId;
+            BaseDamage = 1.0f;
+            BaseSpeed = 1.0f;
+            BaseFirerate = 1.0f;
             DamageMultiplier = 1.0f;
             SpeedMultiplier = 1.0f;
             FireRateMultiplier = 1.0f;

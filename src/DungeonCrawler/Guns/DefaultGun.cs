@@ -9,6 +9,9 @@ namespace DungeonCrawler.Guns
     {
         public DefaultGun(long ownerId) : base(ownerId)
         {
+            BaseDamage = 1.0f;
+            BaseSpeed = 5.0f;
+            BaseFirerate = 10.0f;
         }
 
         public override List<Projectile> Shoot(Vector2 position, Vector2 direction)
@@ -16,7 +19,7 @@ namespace DungeonCrawler.Guns
             var projectiles = new List<Projectile>();
             if (!CanFire) return projectiles;
 
-            projectiles.Add(new Projectile(position, direction, Speed, OwnerId));
+            projectiles.Add(new Projectile(position, direction, Damage, Speed, OwnerId));
             LastShot = DateTime.Now;
 
             return projectiles;
