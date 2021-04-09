@@ -7,7 +7,7 @@ namespace DungeonCrawler.Guns
 {
     public abstract class Gun
     {
-        protected long OwnerId { get; }
+        protected GameObject Owner { get; }
         protected DateTime LastShot { get; set; }
         public float BaseDamage { get; protected set; }
         public float BaseSpeed { get; protected set; }
@@ -21,9 +21,9 @@ namespace DungeonCrawler.Guns
 
         protected bool CanFire => (DateTime.Now - LastShot > TimeSpan.FromSeconds(1) / FireRate);
 
-        protected Gun(long ownerId)
+        protected Gun(GameObject owner)
         {
-            OwnerId = ownerId;
+            Owner = owner;
             BaseDamage = 1.0f;
             BaseSpeed = 1.0f;
             BaseFirerate = 1.0f;

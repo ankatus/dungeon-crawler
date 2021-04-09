@@ -7,7 +7,7 @@ namespace DungeonCrawler.Guns
 {
     public class DefaultGun : Gun
     {
-        public DefaultGun(long ownerId) : base(ownerId)
+        public DefaultGun(GameObject owner) : base(owner)
         {
             BaseDamage = 1.0f;
             BaseSpeed = 5.0f;
@@ -19,7 +19,7 @@ namespace DungeonCrawler.Guns
             var projectiles = new List<Projectile>();
             if (!CanFire) return projectiles;
 
-            projectiles.Add(new Projectile(position, direction, Damage, Speed, OwnerId));
+            projectiles.Add(new Projectile(position, direction, Damage, Speed, Owner));
             LastShot = DateTime.Now;
 
             return projectiles;

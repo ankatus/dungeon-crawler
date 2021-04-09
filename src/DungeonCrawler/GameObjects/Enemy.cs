@@ -109,7 +109,7 @@ namespace DungeonCrawler.GameObjects
             var projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
 
             var projectile =
-                new Projectile((int) Position.X, (int) Position.Y, projectileTravelVector, 5, Id);
+                new Projectile((int) Position.X, (int) Position.Y, projectileTravelVector, 5, this);
 
             _room.Projectiles.Add(projectile);
             _lastShotTime = DateTime.Now;
@@ -117,7 +117,8 @@ namespace DungeonCrawler.GameObjects
 
         public void ProjectileCollision(Projectile projectile)
         {
-            if (projectile.SourceId == Id) return;
+            if (projectile.Source.Id == Id) return;
+            if (projectile.Source is Enemy) return;
 
             CurrentHealth -= projectile.Damage;
 

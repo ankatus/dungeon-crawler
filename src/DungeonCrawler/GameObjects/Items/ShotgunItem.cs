@@ -16,7 +16,7 @@ namespace DungeonCrawler.GameObjects.Items
 
         protected override void ItemActivated(Player player)
         {
-            var shotgun = new Shotgun(player.Id);
+            var shotgun = new Shotgun(player);
             player.Guns.Add(shotgun);
         }
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -11,6 +12,8 @@ namespace DungeonCrawler.Rooms
     {
         private const int WALL_THICKNESS = 10;
         private const int DOOR_WIDTH = 100;
+        protected List<Vector2> PossibleEnemySpawnPoints { get; set; }
+        protected Random RandomGenerator { get; private set; }
 
         public readonly Vector2 Position;
         public int WallThickness => WALL_THICKNESS;
@@ -44,6 +47,8 @@ namespace DungeonCrawler.Rooms
             Projectiles = new List<Projectile>();
             Items = new List<Item>();
             RoomGraph = new RoomGraph(this, new Enemy(this, Vector2.Zero, 0, 0));
+            PossibleEnemySpawnPoints = new List<Vector2>();
+            RandomGenerator = new Random();
         }
 
         public void Update(Player player)
@@ -78,8 +83,67 @@ namespace DungeonCrawler.Rooms
             Items.RemoveAll(gameObject => gameObject.State == GameObjectState.Inactive);
         }
 
-        protected void CreateSurroundingWalls(List<DoorPosition> doorPositions)
+        protected void SpawnEnemyOnRandomSpawnPoint(Enemy enemy)
         {
+            if (PossibleEnemySpawnPoints.Count > 0)
+            {
+                var randomIndex = RandomGenerator.Next(0, PossibleEnemySpawnPoints.Count);
+                enemy.Position = PossibleEnemySpawnPoints[randomIndex];
+                Enemies.Add(enemy);
+            }
+        }
+
+        protected void CreateSurroundingWalls(RoomLocation roomLocation)
+        {
+            var doorPositions = new List<DoorPosition>();
+            switch (roomLocation)
+            {
+                case RoomLocation.Normal:
+                    doorPositions.Add(DoorPosition.Top);
+                    doorPositions.Add(DoorPosition.Right);
+                    doorPositions.Add(DoorPosition.Bottom);
+                    doorPositions.Add(DoorPosition.Left);
+                    break;
+                case RoomLocation.UpperLeftCorner:
+                    doorPositions.Add(DoorPosition.Right);
+                    doorPositions.Add(DoorPosition.Bottom);
+                    break;
+                case RoomLocation.UpperRightCorner:
+                    doorPositions.Add(DoorPosition.Bottom);
+                    doorPositions.Add(DoorPosition.Left);
+                    break;
+                case RoomLocation.LowerLeftCorner:
+                    doorPositions.Add(DoorPosition.Top);
+                    doorPositions.Add(DoorPosition.Right);
+                    break;
+                case RoomLocation.LowerRightCorner:
+                    doorPositions.Add(DoorPosition.Top);
+                    doorPositions.Add(DoorPosition.Left);
+                    break;
+                case RoomLocation.UpperEdge:
+                    doorPositions.Add(DoorPosition.Right);
+                    doorPositions.Add(DoorPosition.Bottom);
+                    doorPositions.Add(DoorPosition.Left);
+                    break;
+                case RoomLocation.RightEdge:
+                    doorPositions.Add(DoorPosition.Top);
+                    doorPositions.Add(DoorPosition.Bottom);
+                    doorPositions.Add(DoorPosition.Left);
+                    break;
+                case RoomLocation.LowerEdge:
+                    doorPositions.Add(DoorPosition.Top);
+                    doorPositions.Add(DoorPosition.Right);
+                    doorPositions.Add(DoorPosition.Left);
+                    break;
+                case RoomLocation.LeftEdge:
+                    doorPositions.Add(DoorPosition.Top);
+                    doorPositions.Add(DoorPosition.Right);
+                    doorPositions.Add(DoorPosition.Bottom);
+                    break;
+                default:
+                    throw new Exception("Unknown room location");
+            }
+
             // Top
             if (doorPositions.Contains(DoorPosition.Top))
             {

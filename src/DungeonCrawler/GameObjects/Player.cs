@@ -21,10 +21,10 @@ namespace DungeonCrawler.GameObjects
         public Player(GameMap map, int x, int y) : base(x, y, 10, 30)
         {
             _map = map;
-            _movingSpeed = 3;
+            _movingSpeed = 5;
             MaxHealth = 50;
             CurrentHealth = MaxHealth;
-            var defaultGun = new DefaultGun(Id);
+            var defaultGun = new DefaultGun(this);
             Guns = new List<Gun>();
             Guns.Add(defaultGun);
             activeGunIndex = 0;
@@ -132,7 +132,7 @@ namespace DungeonCrawler.GameObjects
 
         public void ProjectileCollision(Projectile projectile)
         {
-            if (projectile.SourceId == Id) return;
+            if (projectile.Source.Id == Id) return;
 
             CurrentHealth -= projectile.Damage;
 
