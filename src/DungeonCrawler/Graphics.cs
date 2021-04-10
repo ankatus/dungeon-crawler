@@ -28,8 +28,9 @@ namespace DungeonCrawler
             HealthPack
         };
 
-        public int WINDOW_WIDTH = 1280;
-        public int WINDOW_HEIGHT = 720;
+        public int WindowWidth { get; private set; }
+        public int WindowHeight { get; private set; }
+
         private const float BLACK_BARS_LAYER = 0.0f;
         private const float GAME_OBJECT_LAYER = 0.1f;
 
@@ -52,15 +53,17 @@ namespace DungeonCrawler
             _game = game;
             _graphics = new GraphicsDeviceManager(_game);
             _textures = new Dictionary<TextureId, Texture2D>();
+            WindowWidth = 1280;
+            WindowHeight = 720;
         }
 
         public void Initialize()
         {
-            _graphics.PreferredBackBufferWidth = WINDOW_WIDTH;
-            _graphics.PreferredBackBufferHeight = WINDOW_HEIGHT;
+            _graphics.PreferredBackBufferWidth = WindowWidth;
+            _graphics.PreferredBackBufferHeight = WindowHeight;
             _graphics.ApplyChanges();
             _spriteBatch = new SpriteBatch(_game.GraphicsDevice);
-            _windowAspectRatio = (float) WINDOW_WIDTH / WINDOW_HEIGHT;
+            _windowAspectRatio = (float) WindowWidth / WindowHeight;
         }
 
         public void LoadTextures()
@@ -89,13 +92,22 @@ namespace DungeonCrawler
             }
         }
 
+        public void ChangeResolutionTo(int width, int height)
+        {
+            WindowWidth = width;
+            WindowHeight = height;
+            _graphics.PreferredBackBufferWidth = width;
+            _graphics.PreferredBackBufferHeight = height;
+            _graphics.ApplyChanges();
+        }
+
         public void Draw(List<GameObject> gameObjects, List<UIObject> uiObjects)
         {
             _game.GraphicsDevice.Clear(Color.CornflowerBlue);
 
             _spriteBatch.Begin(sortMode: SpriteSortMode.FrontToBack, samplerState: SamplerState.LinearWrap);
 
-            float pixelsPerUnit;
+            float unitsPerPixel;
             var verticalPadding = 0;
             var horizontalPadding = 0;
 
@@ -104,42 +116,44 @@ namespace DungeonCrawler
             {
                 // Camera is "wider" than window
                 // Top/Bottom "black bars"
-                pixelsPerUnit = (float) WINDOW_WIDTH / _game.Camera.Width;
-                verticalPadding = (int) (WINDOW_HEIGHT - WINDOW_WIDTH / _game.Camera.AspectRatio) / 2;
+                unitsPerPixel = (float) WindowWidth / _game.Camera.Width;
+                verticalPadding = (int) (WindowHeight - WindowWidth / _game.Camera.AspectRatio) / 2;
             }
             else if (_game.Camera.AspectRatio < _windowAspectRatio)
             {
                 // Camera is "taller" than window
                 // Left/Right "black bars"
-                pixelsPerUnit = (float) WINDOW_HEIGHT / _game.Camera.Height;
-                horizontalPadding = (int) (WINDOW_WIDTH - WINDOW_HEIGHT * _game.Camera.AspectRatio) / 2;
+                unitsPerPixel = (float) WindowHeight / _game.Camera.Height;
+                horizontalPadding = (int) (WindowWidth - WindowHeight * _game.Camera.AspectRatio) / 2;
             }
             else
             {
                 // Aspect ratios are identical, no need to do anything fancy
-                pixelsPerUnit = (float) WINDOW_WIDTH / _game.Camera.Width;
+                unitsPerPixel = (float) WindowWidth / _game.Camera.Width;
             }
 
             DrawBlackBars(horizontalPadding, verticalPadding);
 
             foreach (var gameObject in gameObjects)
             {
-                DrawGameObject(gameObject, pixelsPerUnit, horizontalPadding, verticalPadding);
+                DrawGameObject(gameObject, unitsPerPixel, horizontalPadding, verticalPadding);
             }
+
+            var uiUnitsPerPixel = (float) WindowWidth / _game.UserInterface.Width;
 
             foreach (var uiObject in uiObjects)
             {
-                DrawUIObject(uiObject, pixelsPerUnit);
+                DrawUIObject(uiObject, uiUnitsPerPixel);
             }
 
             _spriteBatch.End();
         }
 
-        private void DrawGameObject(GameObject gameObject, float pixelsPerUnit, int horizontalPadding,
+        private void DrawGameObject(GameObject gameObject, float unitsPerPixel, int horizontalPadding,
             int verticalPadding)
         {
             if (gameObject.State == GameObjectState.Inactive) return;
-            var drawable = GameObjectToDrawable(gameObject, pixelsPerUnit, horizontalPadding, verticalPadding);
+            var drawable = GameObjectToDrawable(gameObject, unitsPerPixel, horizontalPadding, verticalPadding);
             DrawDrawable(drawable);
 
             // Draw health bar for enemy (Need to be refactored)
@@ -175,11 +189,11 @@ namespace DungeonCrawler
             }
         }
 
-        private void DrawUIObject(UIObject UiObject, float pixelsPerUnit)
+        private void DrawUIObject(UIObject uiObject, float unitsPerPixel)
         {
             var stack = new Stack<UIObject>();
 
-            stack.Push(UiObject);
+            stack.Push(uiObject);
 
             while (stack.Count > 0)
             {
@@ -187,7 +201,7 @@ namespace DungeonCrawler
 
                 if (current.State != UIObjectState.Active) continue;
 
-                DrawDrawable(UIObjectToDrawable(current, pixelsPerUnit, 0, 0));
+                DrawDrawable(UIObjectToDrawable(current, unitsPerPixel, 0, 0));
 
                 // Draw text on button (Need to be refactored)
                 if (current is Button && (current as Button).Text != "")
@@ -196,7 +210,7 @@ namespace DungeonCrawler
                     var text = btn.Text;
 
                     var textSize = _testFont.MeasureString(text);
-                    var textLocation = btn.Position - new Vector2(textSize.X / 2, textSize.Y / 2);
+                    var textLocation = btn.Position  * unitsPerPixel - new Vector2(textSize.X / 2, textSize.Y / 2);
 
                     _spriteBatch.DrawString(_testFont, text, textLocation, Color.Red, 0, new Vector2(0, 0), 1,
                         SpriteEffects.None, UI_TEXT_LAYER);
@@ -207,8 +221,8 @@ namespace DungeonCrawler
                     var text = textBlock.Text;
 
                     var textSize = _testFont.MeasureString(text);
-                    var textLocation = textBlock.Position;
-                    _spriteBatch.DrawString(_testFont, text, textLocation, Color.Red, 0, new Vector2(0, 0), 1,
+                    var textLocation = textBlock.Position * unitsPerPixel;
+                    _spriteBatch.DrawString(_testFont, text, textLocation * unitsPerPixel, Color.Red, 0, new Vector2(0, 0), 1,
                         SpriteEffects.None, UI_TEXT_LAYER);
                 }
 
@@ -231,7 +245,7 @@ namespace DungeonCrawler
             );
         }
 
-        private Drawable GameObjectToDrawable(GameObject gameObject, float pixelsPerUnit, int horizontalPadding,
+        private Drawable GameObjectToDrawable(GameObject gameObject, float unitsPerPixel, int horizontalPadding,
             int verticalPadding)
         {
             var notScaled = new List<TextureId> { TextureId.Wall };
@@ -277,19 +291,19 @@ namespace DungeonCrawler
             var texture = _textures[textureId];
             if (notScaled.Contains(textureId))
             {
-                scale = Vector2.One * pixelsPerUnit;
+                scale = Vector2.One * unitsPerPixel;
                 origin = new Vector2((float) gameObject.Width / 2, (float) gameObject.Height / 2);
                 source = new Rectangle(0, 0, gameObject.Width, gameObject.Height);
             }
             else
             {
-                scale = new Vector2(gameObject.Width * pixelsPerUnit / texture.Width,
-                    gameObject.Height * pixelsPerUnit / texture.Height);
+                scale = new Vector2(gameObject.Width * unitsPerPixel / texture.Width,
+                    gameObject.Height * unitsPerPixel / texture.Height);
                 origin = new Vector2((float) texture.Width / 2, (float) texture.Height / 2);
                 source = new Rectangle(0, 0, texture.Width, texture.Height);
             }
 
-            var drawPosition = (gameObject.Position - _game.Camera.TopLeft.ToVector2()) * pixelsPerUnit;
+            var drawPosition = (gameObject.Position - _game.Camera.TopLeft.ToVector2()) * unitsPerPixel;
             drawPosition.X += horizontalPadding;
             drawPosition.Y += verticalPadding;
 
@@ -307,7 +321,7 @@ namespace DungeonCrawler
             return drawableGameObject;
         }
 
-        private Drawable UIObjectToDrawable(UIObject uiObject, float pixelsPerUnit, int horizontalPadding,
+        private Drawable UIObjectToDrawable(UIObject uiObject, float unitsPerPixel, int horizontalPadding,
             int verticalPadding)
         {
             var textureId = uiObject switch
@@ -319,10 +333,10 @@ namespace DungeonCrawler
             };
 
             var texture = _textures[textureId];
-            var scale = new Vector2(uiObject.Width / texture.Width, uiObject.Height / texture.Height);
+            var scale = new Vector2(uiObject.Width / texture.Width * unitsPerPixel, uiObject.Height / texture.Height * unitsPerPixel);
             var origin = new Vector2((float) texture.Width / 2, (float) texture.Height / 2);
             var source = new Rectangle(0, 0, texture.Width, texture.Height);
-            var drawPosition = uiObject.Position + new Vector2(horizontalPadding, verticalPadding);
+            var drawPosition = uiObject.Position * unitsPerPixel + new Vector2(horizontalPadding, verticalPadding);
             var layer = UI_OBJECT_LAYER;
 
             if (uiObject is Menu)
@@ -349,13 +363,13 @@ namespace DungeonCrawler
             if (verticalPadding > 0)
             {
                 // Draw black bars
-                var scale = new Vector2((float) WINDOW_WIDTH / _blackBarTexture.Width,
+                var scale = new Vector2((float) WindowWidth / _blackBarTexture.Width,
                     (float) verticalPadding / _blackBarTexture.Height);
 
                 _spriteBatch.Draw(_blackBarTexture, new Vector2(0, 0),
                     null, Color.White, 0.0f,
                     Vector2.Zero, scale, SpriteEffects.None, BLACK_BARS_LAYER);
-                _spriteBatch.Draw(_blackBarTexture, new Vector2(0, WINDOW_HEIGHT - verticalPadding),
+                _spriteBatch.Draw(_blackBarTexture, new Vector2(0, WindowHeight - verticalPadding),
                     null, Color.White, 0.0f,
                     Vector2.Zero, scale, SpriteEffects.None, BLACK_BARS_LAYER);
             }
@@ -363,12 +377,12 @@ namespace DungeonCrawler
             {
                 // Draw black bars
                 var scale = new Vector2((float) horizontalPadding / _blackBarTexture.Width,
-                    (float) WINDOW_HEIGHT / _blackBarTexture.Height);
+                    (float) WindowHeight / _blackBarTexture.Height);
 
                 _spriteBatch.Draw(_blackBarTexture, new Vector2(0, 0),
                     null, Color.White, 0.0f,
                     Vector2.Zero, scale, SpriteEffects.None, BLACK_BARS_LAYER);
-                _spriteBatch.Draw(_blackBarTexture, new Vector2(WINDOW_WIDTH - horizontalPadding, 0),
+                _spriteBatch.Draw(_blackBarTexture, new Vector2(WindowWidth - horizontalPadding, 0),
                     null, Color.White, 0.0f,
                     Vector2.Zero, scale, SpriteEffects.None, BLACK_BARS_LAYER);
             }

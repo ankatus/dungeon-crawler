@@ -11,6 +11,7 @@ namespace DungeonCrawler
     public enum GameState
     {
         MainMenu,
+        OptionsMenu,
         PauseMenu,
         Playing,
         Defeat,
@@ -21,8 +22,14 @@ namespace DungeonCrawler
     public class Game1 : Game
     {
         private readonly Graphics _graphics;
+        private int _selectedResolutionIndex;
+
         public DefaultMap Map { get; set; }
+        public UserInterface UserInterface { get; }
         public Menu MainMenu { get; set; }
+        public Menu OptionsMenu { get;set; }
+        public Button ResolutionButton { get; set; }
+        public List<ResolutionSetting> Resolutions { get; }
         public Menu PauseMenu { get; set; }
         public Camera Camera { get; private set; }
         public GameState GameState { get; set; }
@@ -33,32 +40,64 @@ namespace DungeonCrawler
             _graphics = new Graphics(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            Resolutions = new List<ResolutionSetting>();
+            UserInterface = new UserInterface((float)16 / 9);
         }
 
         protected override void Initialize()
         {
             _graphics.Initialize();
+            Resolutions.Add(new ResolutionSetting {Width = 960, Height = 540, Name = "960x540"});
+            Resolutions.Add(new ResolutionSetting {Width = 1280, Height = 720, Name = "1280x720"});
+            Resolutions.Add(new ResolutionSetting {Width = 1920, Height = 1080, Name = "1920x1080"});
+            
+            _selectedResolutionIndex = 1;
+            var resolution = Resolutions[_selectedResolutionIndex];
+
+            var windowWidth = resolution.Width;
+            var windowHeight = resolution.Height;
+
+
             Map = new DefaultMap();
 
-            var windowWidth = 1280;
-            var windowHeight = 720;
-            var width = 600;
-            var height = 400;
 
             Camera = new Camera((float) windowWidth / windowHeight)
             {
                 Width = Map.HorizontalRooms * Map.RoomWidth,
                 TopLeft = new Point(0, 0),
             };
+            
+            const int MENU_WIDTH = 600;
+            const int MENU_HEIGHT = 400;
+            var mouseFactor = new Vector2(_graphics.WindowWidth / UserInterface.Width, _graphics.WindowHeight / UserInterface.Height);
 
-            MainMenu = new Menu(new Vector2((windowWidth) / 2, (windowHeight) / 2), width, height);
-            MainMenu.AddButton("Start new game", StartNewGame);
-            MainMenu.AddButton("Options", () => { });
-            MainMenu.AddButton("Exit", () => { GameState = GameState.Exit; });
+            OptionsMenu = new Menu(new Vector2(UserInterface.Width / 2, UserInterface.Height / 2), MENU_WIDTH, MENU_HEIGHT);
+            ResolutionButton = OptionsMenu.AddButton(Resolutions[_selectedResolutionIndex].Name, ChangeResolution, mouseFactor);
+            OptionsMenu.AddButton("Back", () =>
+            {
+                GameState = GameState.MainMenu;
+                OptionsMenu.State = UIObjectState.Inactive;
+                MainMenu.State = UIObjectState.Active;
+            }, mouseFactor);
+            OptionsMenu.State = UIObjectState.Inactive;
 
-            PauseMenu = new Menu(new Vector2((windowWidth) / 2, (windowHeight) / 2), width, height);
-            PauseMenu.AddButton("Continue", () => { GameState = GameState.Playing; });
-            PauseMenu.AddButton("Exit to main menu", () => { GameState = GameState.MainMenu; });
+            MainMenu = new Menu(new Vector2(UserInterface.Width / 2, UserInterface.Height / 2), MENU_WIDTH, MENU_HEIGHT);
+            MainMenu.AddButton("Start new game", StartNewGame, mouseFactor);
+            MainMenu.AddButton("Options", () =>
+            {
+                GameState = GameState.OptionsMenu;
+                MainMenu.State = UIObjectState.Inactive;
+                OptionsMenu.State = UIObjectState.Active;
+            }, mouseFactor);
+            MainMenu.AddButton("Exit", () => { GameState = GameState.Exit; }, mouseFactor);
+
+            PauseMenu = new Menu(new Vector2(UserInterface.Width / 2, UserInterface.Height / 2), MENU_WIDTH, MENU_HEIGHT);
+            PauseMenu.AddButton("Continue", () => { GameState = GameState.Playing; }, mouseFactor);
+            PauseMenu.AddButton("Exit to main menu", () => { GameState = GameState.MainMenu; }, mouseFactor);
+
+            UserInterface.Elements.Add(MainMenu);
+            UserInterface.Elements.Add(OptionsMenu);
+            UserInterface.Elements.Add(PauseMenu);
 
             base.Initialize();
         }
@@ -110,6 +149,9 @@ namespace DungeonCrawler
             {
                 case GameState.MainMenu:
                     MainMenu.Update();
+                    break;
+                case GameState.OptionsMenu:
+                    OptionsMenu.Update();
                     break;
                 case GameState.PauseMenu:
                     PauseMenu.Update();
@@ -209,17 +251,25 @@ namespace DungeonCrawler
                 gameObjects.AddRange(room.AllObjects);
             }
 
-            var uiObjects = new List<UIObject>();
-            uiObjects.Add(MainMenu);
-            uiObjects.Add(PauseMenu);
+            _graphics.Draw(gameObjects, UserInterface.Elements);
+        }
 
-            _graphics.Draw(gameObjects, uiObjects);
+        private void ChangeResolution()
+        {
+            if (_selectedResolutionIndex == Resolutions.Count - 1) _selectedResolutionIndex = 0;
+            else _selectedResolutionIndex++;
+
+            var resolution = Resolutions[_selectedResolutionIndex];
+
+            ResolutionButton.Text = resolution.Name;
+
+            _graphics.ChangeResolutionTo(resolution.Width, resolution.Height);
         }
 
         private float GetAngleFromPlayerToCursor()
         {
             // Translate player position to screen space coordinates
-            var pixelsPerUnit = (float) _graphics.WINDOW_WIDTH / Camera.Width;
+            var pixelsPerUnit = (float) _graphics.WindowWidth / Camera.Width;
 
             (int x, int y) playerCameraRelativePosition = ((int) Map.Player.Position.X - Camera.TopLeft.X,
                 (int) Map.Player.Position.Y - Camera.TopLeft.Y);

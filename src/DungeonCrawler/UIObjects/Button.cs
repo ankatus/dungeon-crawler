@@ -1,31 +1,28 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DungeonCrawler.UIObjects
 {
     public class Button : UIObject
     {
-        private ButtonState previousButtonState;
-        public string Text { get; }
+        private ButtonState _previousButtonState;
+        private Vector2 _mouseFactor;
 
-        public Button(string text, Vector2 position, int width, int height) : base(position, width, height)
+        public string Text { get; set; }
+
+        public Button(string text, Vector2 position, int width, int height, Vector2 mouseFactor) : base(position, width, height)
         {
-            previousButtonState = ButtonState.Released;
+            _previousButtonState = ButtonState.Released;
+            _mouseFactor = mouseFactor;
             Text = text;
         }
 
         public bool IsPressed()
         {
-            ButtonState currentButtonState = Mouse.GetState().LeftButton;
-            bool isPressedAndReleased = false;
+            var currentButtonState = Mouse.GetState().LeftButton;
+            var isPressedAndReleased = false;
 
-            if (currentButtonState == ButtonState.Released && previousButtonState == ButtonState.Pressed)
+            if (currentButtonState == ButtonState.Released && _previousButtonState == ButtonState.Pressed)
             {
                 if (IsMouseHoveringOver())
                 {
@@ -33,20 +30,18 @@ namespace DungeonCrawler.UIObjects
                 }
             }
 
-            previousButtonState = currentButtonState;
+            _previousButtonState = currentButtonState;
             return isPressedAndReleased;
         }
 
         private bool IsMouseHoveringOver()
         {
-            var (x, y) = Mouse.GetState().Position;
+            var (x, y) = Mouse.GetState().Position.ToVector2() / _mouseFactor;
 
-            if (Position.X + Width / 2 >= x && Position.X - Width / 2 <= x && Position.Y + Height / 2 >= y && Position.Y - Height / 2 <= y)
-            {
-                return true;
-            }
-
-            return false;
+            return Position.X + Width / 2 >= x && 
+                   Position.X - Width / 2 <= x && 
+                   Position.Y + Height / 2 >= y && 
+                   Position.Y - Height / 2 <= y;
         }
     }
 }

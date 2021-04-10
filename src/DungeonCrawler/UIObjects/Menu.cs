@@ -1,10 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DungeonCrawler.UIObjects
 {
@@ -12,13 +8,10 @@ namespace DungeonCrawler.UIObjects
     {
         public string InfoMessage
         {
-            set
-            {
-                _infoMessage.Text = value;
-            }
+            set => _infoMessage.Text = value;
         }
-        private TextBlock _infoMessage;
-        private Dictionary<string, Action> _buttonActions;
+        private readonly TextBlock _infoMessage;
+        private readonly Dictionary<long, Action> _buttonActions;
         private Vector2 _nextButtonPosition;
 
         public Menu(Vector2 position, int width, int height) : base(position, width, height)
@@ -27,30 +20,32 @@ namespace DungeonCrawler.UIObjects
             Children.Add(_infoMessage);
 
             _nextButtonPosition = position - new Vector2(0, height / 2 - 30);
-            _buttonActions = new Dictionary<string, Action>();
+            _buttonActions = new Dictionary<long, Action>();
         }
 
-        public void AddButton(string text, Action a)
+        public Button AddButton(string text, Action a, Vector2 mouseFactor)
         {
-            _buttonActions.Add(text, a);
-            Children.Add(new Button(text, _nextButtonPosition, 200, 30));
+            var button = new Button(text, _nextButtonPosition, 200, 30, mouseFactor);
+            _buttonActions.Add(button.Id, a);
+            Children.Add(button);
             _nextButtonPosition += new Vector2(0, 40);
+
+            return button;
         }
 
         public void Update()
         {
             State = UIObjectState.Active;
 
-            foreach (UIObject uiObject in Children)
+            foreach (var uiObject in Children)
             {
-                if (uiObject is Button)
-                {
-                    Button button = (uiObject as Button);
+                if (uiObject is not Button) continue;
 
-                    if (button.IsPressed())
-                    {
-                        _buttonActions[button.Text]();
-                    }
+                var button = (uiObject as Button);
+
+                if (button.IsPressed())
+                {
+                    _buttonActions[button.Id]();
                 }
             }
         }
