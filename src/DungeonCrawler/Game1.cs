@@ -27,7 +27,7 @@ namespace DungeonCrawler
         public DefaultMap Map { get; set; }
         public UserInterface UserInterface { get; }
         public Menu MainMenu { get; set; }
-        public Menu OptionsMenu { get;set; }
+        public Menu OptionsMenu { get; set; }
         public Button ResolutionButton { get; set; }
         public List<ResolutionSetting> Resolutions { get; }
         public Menu PauseMenu { get; set; }
@@ -41,7 +41,7 @@ namespace DungeonCrawler
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             Resolutions = new List<ResolutionSetting>();
-            UserInterface = new UserInterface((float)16 / 9);
+            UserInterface = new UserInterface((float) 16 / 9);
         }
 
         protected override void Initialize()
@@ -50,7 +50,7 @@ namespace DungeonCrawler
             Resolutions.Add(new ResolutionSetting {Width = 960, Height = 540, Name = "960x540"});
             Resolutions.Add(new ResolutionSetting {Width = 1280, Height = 720, Name = "1280x720"});
             Resolutions.Add(new ResolutionSetting {Width = 1920, Height = 1080, Name = "1920x1080"});
-            
+
             _selectedResolutionIndex = 1;
             var resolution = Resolutions[_selectedResolutionIndex];
 
@@ -66,13 +66,16 @@ namespace DungeonCrawler
                 Width = Map.HorizontalRooms * Map.RoomWidth,
                 TopLeft = new Point(0, 0),
             };
-            
+
             const int MENU_WIDTH = 600;
             const int MENU_HEIGHT = 400;
-            var mouseFactor = new Vector2(_graphics.WindowWidth / UserInterface.Width, _graphics.WindowHeight / UserInterface.Height);
+            var mouseFactor = new Vector2(_graphics.WindowWidth / UserInterface.Width,
+                _graphics.WindowHeight / UserInterface.Height);
 
-            OptionsMenu = new Menu(new Vector2(UserInterface.Width / 2, UserInterface.Height / 2), MENU_WIDTH, MENU_HEIGHT);
-            ResolutionButton = OptionsMenu.AddButton(Resolutions[_selectedResolutionIndex].Name, ChangeResolution, mouseFactor);
+            OptionsMenu = new Menu(new Vector2(UserInterface.Width / 2, UserInterface.Height / 2), MENU_WIDTH,
+                MENU_HEIGHT);
+            ResolutionButton =
+                OptionsMenu.AddButton(Resolutions[_selectedResolutionIndex].Name, ChangeResolution, mouseFactor);
             OptionsMenu.AddButton("Back", () =>
             {
                 GameState = GameState.MainMenu;
@@ -81,7 +84,8 @@ namespace DungeonCrawler
             }, mouseFactor);
             OptionsMenu.State = UIObjectState.Inactive;
 
-            MainMenu = new Menu(new Vector2(UserInterface.Width / 2, UserInterface.Height / 2), MENU_WIDTH, MENU_HEIGHT);
+            MainMenu = new Menu(new Vector2(UserInterface.Width / 2, UserInterface.Height / 2), MENU_WIDTH,
+                MENU_HEIGHT);
             MainMenu.AddButton("Start new game", StartNewGame, mouseFactor);
             MainMenu.AddButton("Options", () =>
             {
@@ -91,7 +95,8 @@ namespace DungeonCrawler
             }, mouseFactor);
             MainMenu.AddButton("Exit", () => { GameState = GameState.Exit; }, mouseFactor);
 
-            PauseMenu = new Menu(new Vector2(UserInterface.Width / 2, UserInterface.Height / 2), MENU_WIDTH, MENU_HEIGHT);
+            PauseMenu = new Menu(new Vector2(UserInterface.Width / 2, UserInterface.Height / 2), MENU_WIDTH,
+                MENU_HEIGHT);
             PauseMenu.AddButton("Continue", () => { GameState = GameState.Playing; }, mouseFactor);
             PauseMenu.AddButton("Exit to main menu", () => { GameState = GameState.MainMenu; }, mouseFactor);
 
@@ -148,13 +153,13 @@ namespace DungeonCrawler
             switch (GameState)
             {
                 case GameState.MainMenu:
-                    MainMenu.Update();
+                    MainMenu.Update(GetMouseEvent());
                     break;
                 case GameState.OptionsMenu:
-                    OptionsMenu.Update();
+                    OptionsMenu.Update(GetMouseEvent());
                     break;
                 case GameState.PauseMenu:
-                    PauseMenu.Update();
+                    PauseMenu.Update(GetMouseEvent());
                     break;
                 case GameState.Exit:
                     Exit();
@@ -285,6 +290,19 @@ namespace DungeonCrawler
             var rotation = (float) Math.Atan2(y, x);
 
             return rotation;
+        }
+
+        private MouseEvent GetMouseEvent()
+        {
+            var (x, y) = Mouse.GetState().Position;
+            var (uiX, uiY) = ((float) x / _graphics.WindowWidth * UserInterface.Width,
+                (float) y / _graphics.WindowHeight * UserInterface.Height);
+
+            return new MouseEvent()
+            {
+                ButtonState = Mouse.GetState().LeftButton,
+                Position = new Point((int) uiX, (int) uiY),
+            };
         }
     }
 }

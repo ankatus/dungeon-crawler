@@ -33,7 +33,7 @@ namespace DungeonCrawler.UIObjects
             return button;
         }
 
-        public void Update()
+        public void Update(MouseEvent mouseEvent)
         {
             State = UIObjectState.Active;
 
@@ -43,7 +43,7 @@ namespace DungeonCrawler.UIObjects
 
                 var button = (uiObject as Button);
 
-                if (button.IsPressed())
+                if (button.IsPressed(mouseEvent))
                 {
                     _buttonActions[button.Id]();
                 }
