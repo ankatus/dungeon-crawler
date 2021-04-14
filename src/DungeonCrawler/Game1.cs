@@ -4,14 +4,15 @@ using System;
 using System.Collections.Generic;
 using DungeonCrawler.GameObjects;
 using DungeonCrawler.Maps;
-using DungeonCrawler.UIObjects;
+using DungeonCrawler.UI;
+using DungeonCrawler.UI.UIObjects;
 
 namespace DungeonCrawler
 {
     public enum GameState
     {
-        MainMenu,
-        PauseMenu,
+        NotStarted,
+        Paused,
         Playing,
         Defeat,
         Victory,
@@ -21,44 +22,35 @@ namespace DungeonCrawler
     public class Game1 : Game
     {
         private readonly Graphics _graphics;
+        private readonly UserInterface _userInterface;
+
         public DefaultMap Map { get; set; }
-        public Menu MainMenu { get; set; }
-        public Menu PauseMenu { get; set; }
         public Camera Camera { get; private set; }
         public GameState GameState { get; set; }
 
         public Game1()
         {
-            GameState = GameState.MainMenu;
+            GameState = GameState.NotStarted;
             _graphics = new Graphics(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            _userInterface = new UserInterface((float) 16 / 9, _graphics, this);
         }
 
         protected override void Initialize()
         {
             _graphics.Initialize();
-            Map = new DefaultMap();
 
-            var windowWidth = 1280;
-            var windowHeight = 720;
-            var width = 600;
-            var height = 400;
+            var windowWidth = _graphics.WindowWidth;
+            var windowHeight = _graphics.WindowHeight;
+
+            Map = new DefaultMap();
 
             Camera = new Camera((float) windowWidth / windowHeight)
             {
                 Width = Map.HorizontalRooms * Map.RoomWidth,
                 TopLeft = new Point(0, 0),
             };
-
-            MainMenu = new Menu(new Vector2((windowWidth) / 2, (windowHeight) / 2), width, height);
-            MainMenu.AddButton("Start new game", StartNewGame);
-            MainMenu.AddButton("Options", () => { });
-            MainMenu.AddButton("Exit", () => { GameState = GameState.Exit; });
-
-            PauseMenu = new Menu(new Vector2((windowWidth) / 2, (windowHeight) / 2), width, height);
-            PauseMenu.AddButton("Continue", () => { GameState = GameState.Playing; });
-            PauseMenu.AddButton("Exit to main menu", () => { GameState = GameState.MainMenu; });
 
             base.Initialize();
         }
@@ -70,6 +62,8 @@ namespace DungeonCrawler
 
         protected override void Update(GameTime gameTime)
         {
+            _userInterface.Update(GetMouseEvent());
+
             // Check if game is won
             var victory = true;
             foreach (var room in Map.Rooms)
@@ -94,46 +88,10 @@ namespace DungeonCrawler
                 GameState = GameState.Defeat;
             }
 
-            // If game is not in main menu set menu to inactive
-            if (GameState != GameState.MainMenu)
-            {
-                MainMenu.State = UIObjectState.Inactive;
-            }
-
-            // If game is not in pause menu set menu to inactive
-            if (GameState != GameState.PauseMenu)
-            {
-                PauseMenu.State = UIObjectState.Inactive;
-            }
-
-            switch (GameState)
-            {
-                case GameState.MainMenu:
-                    MainMenu.Update();
-                    break;
-                case GameState.PauseMenu:
-                    PauseMenu.Update();
-                    break;
-                case GameState.Exit:
-                    Exit();
-                    break;
-                case GameState.Playing:
-                    GameLoop();
-                    break;
-                case GameState.Defeat:
-                    PrepareNewGame();
-                    MainMenu.InfoMessage = "Defeat";
-                    GameState = GameState.MainMenu;
-                    break;
-                case GameState.Victory:
-                    PrepareNewGame();
-                    MainMenu.InfoMessage = "Victory!";
-                    GameState = GameState.MainMenu;
-                    break;
-            }
+            if (GameState == GameState.Playing) GameLoop();
         }
 
-        private void StartNewGame()
+        public void StartNewGame()
         {
             PrepareNewGame();
             GameState = GameState.Playing;
@@ -150,7 +108,7 @@ namespace DungeonCrawler
         {
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
-                GameState = GameState.PauseMenu;
+                GameState = GameState.Paused;
                 return;
             }
 
@@ -209,17 +167,13 @@ namespace DungeonCrawler
                 gameObjects.AddRange(room.AllObjects);
             }
 
-            var uiObjects = new List<UIObject>();
-            uiObjects.Add(MainMenu);
-            uiObjects.Add(PauseMenu);
-
-            _graphics.Draw(gameObjects, uiObjects);
+            _graphics.Draw(gameObjects, _userInterface.GetDrawables());
         }
 
         private float GetAngleFromPlayerToCursor()
         {
             // Translate player position to screen space coordinates
-            var pixelsPerUnit = (float) _graphics.WINDOW_WIDTH / Camera.Width;
+            var pixelsPerUnit = (float) _graphics.WindowWidth / Camera.Width;
 
             (int x, int y) playerCameraRelativePosition = ((int) Map.Player.Position.X - Camera.TopLeft.X,
                 (int) Map.Player.Position.Y - Camera.TopLeft.Y);
@@ -235,6 +189,19 @@ namespace DungeonCrawler
             var rotation = (float) Math.Atan2(y, x);
 
             return rotation;
+        }
+
+        private MouseEvent GetMouseEvent()
+        {
+            var (x, y) = Mouse.GetState().Position;
+            var (uiX, uiY) = ((float) x / _graphics.WindowWidth * _userInterface.Width,
+                (float) y / _graphics.WindowHeight * _userInterface.Height);
+
+            return new MouseEvent()
+            {
+                ButtonState = Mouse.GetState().LeftButton,
+                Position = new Point((int) uiX, (int) uiY),
+            };
         }
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DungeonCrawler
 {
-    public class Drawable
+    public record Drawable
     {
         public Texture2D Texture { get; init; }
         public Vector2 Position { get; init; }

@@ -1,14 +1,8 @@
-﻿using Microsoft.Xna.Framework;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 
-namespace DungeonCrawler.UIObjects
+namespace DungeonCrawler.UI.UIObjects
 {
-    public enum UIObjectState
-    {
-        Active,
-        Inactive
-    };
-
     public abstract class UIObject
     {
         private static long _lastId;
@@ -17,7 +11,7 @@ namespace DungeonCrawler.UIObjects
         public int Width { get; set; }
         public int Height { get; set; }
         public float Rotation { get; set; }
-        public virtual List<UIObject> Children { get; }
+        public List<UIObject> Children { get; }
         public UIObjectState State { get; set; }
 
         protected UIObject(Vector2 position, int width, int height)
