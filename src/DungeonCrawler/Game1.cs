@@ -4,15 +4,15 @@ using System;
 using System.Collections.Generic;
 using DungeonCrawler.GameObjects;
 using DungeonCrawler.Maps;
-using DungeonCrawler.UIObjects;
+using DungeonCrawler.UI;
+using DungeonCrawler.UI.UIObjects;
 
 namespace DungeonCrawler
 {
     public enum GameState
     {
-        MainMenu,
-        OptionsMenu,
-        PauseMenu,
+        NotStarted,
+        Paused,
         Playing,
         Defeat,
         Victory,
@@ -22,87 +22,35 @@ namespace DungeonCrawler
     public class Game1 : Game
     {
         private readonly Graphics _graphics;
-        private int _selectedResolutionIndex;
+        private readonly UserInterface _userInterface;
 
         public DefaultMap Map { get; set; }
-        public UserInterface UserInterface { get; }
-        public Menu MainMenu { get; set; }
-        public Menu OptionsMenu { get; set; }
-        public Button ResolutionButton { get; set; }
-        public List<ResolutionSetting> Resolutions { get; }
-        public Menu PauseMenu { get; set; }
         public Camera Camera { get; private set; }
         public GameState GameState { get; set; }
 
         public Game1()
         {
-            GameState = GameState.MainMenu;
+            GameState = GameState.NotStarted;
             _graphics = new Graphics(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-            Resolutions = new List<ResolutionSetting>();
-            UserInterface = new UserInterface((float) 16 / 9);
+            _userInterface = new UserInterface((float) 16 / 9, _graphics, this);
         }
 
         protected override void Initialize()
         {
             _graphics.Initialize();
-            Resolutions.Add(new ResolutionSetting {Width = 960, Height = 540, Name = "960x540"});
-            Resolutions.Add(new ResolutionSetting {Width = 1280, Height = 720, Name = "1280x720"});
-            Resolutions.Add(new ResolutionSetting {Width = 1920, Height = 1080, Name = "1920x1080"});
 
-            _selectedResolutionIndex = 1;
-            var resolution = Resolutions[_selectedResolutionIndex];
-
-            var windowWidth = resolution.Width;
-            var windowHeight = resolution.Height;
-
+            var windowWidth = _graphics.WindowWidth;
+            var windowHeight = _graphics.WindowHeight;
 
             Map = new DefaultMap();
-
 
             Camera = new Camera((float) windowWidth / windowHeight)
             {
                 Width = Map.HorizontalRooms * Map.RoomWidth,
                 TopLeft = new Point(0, 0),
             };
-
-            const int MENU_WIDTH = 600;
-            const int MENU_HEIGHT = 400;
-            var mouseFactor = new Vector2(_graphics.WindowWidth / UserInterface.Width,
-                _graphics.WindowHeight / UserInterface.Height);
-
-            OptionsMenu = new Menu(new Vector2(UserInterface.Width / 2, UserInterface.Height / 2), MENU_WIDTH,
-                MENU_HEIGHT);
-            ResolutionButton =
-                OptionsMenu.AddButton(Resolutions[_selectedResolutionIndex].Name, ChangeResolution, mouseFactor);
-            OptionsMenu.AddButton("Back", () =>
-            {
-                GameState = GameState.MainMenu;
-                OptionsMenu.State = UIObjectState.Inactive;
-                MainMenu.State = UIObjectState.Active;
-            }, mouseFactor);
-            OptionsMenu.State = UIObjectState.Inactive;
-
-            MainMenu = new Menu(new Vector2(UserInterface.Width / 2, UserInterface.Height / 2), MENU_WIDTH,
-                MENU_HEIGHT);
-            MainMenu.AddButton("Start new game", StartNewGame, mouseFactor);
-            MainMenu.AddButton("Options", () =>
-            {
-                GameState = GameState.OptionsMenu;
-                MainMenu.State = UIObjectState.Inactive;
-                OptionsMenu.State = UIObjectState.Active;
-            }, mouseFactor);
-            MainMenu.AddButton("Exit", () => { GameState = GameState.Exit; }, mouseFactor);
-
-            PauseMenu = new Menu(new Vector2(UserInterface.Width / 2, UserInterface.Height / 2), MENU_WIDTH,
-                MENU_HEIGHT);
-            PauseMenu.AddButton("Continue", () => { GameState = GameState.Playing; }, mouseFactor);
-            PauseMenu.AddButton("Exit to main menu", () => { GameState = GameState.MainMenu; }, mouseFactor);
-
-            UserInterface.Elements.Add(MainMenu);
-            UserInterface.Elements.Add(OptionsMenu);
-            UserInterface.Elements.Add(PauseMenu);
 
             base.Initialize();
         }
@@ -114,6 +62,8 @@ namespace DungeonCrawler
 
         protected override void Update(GameTime gameTime)
         {
+            _userInterface.Update(GetMouseEvent());
+
             // Check if game is won
             var victory = true;
             foreach (var room in Map.Rooms)
@@ -138,49 +88,10 @@ namespace DungeonCrawler
                 GameState = GameState.Defeat;
             }
 
-            // If game is not in main menu set menu to inactive
-            if (GameState != GameState.MainMenu)
-            {
-                MainMenu.State = UIObjectState.Inactive;
-            }
-
-            // If game is not in pause menu set menu to inactive
-            if (GameState != GameState.PauseMenu)
-            {
-                PauseMenu.State = UIObjectState.Inactive;
-            }
-
-            switch (GameState)
-            {
-                case GameState.MainMenu:
-                    MainMenu.Update(GetMouseEvent());
-                    break;
-                case GameState.OptionsMenu:
-                    OptionsMenu.Update(GetMouseEvent());
-                    break;
-                case GameState.PauseMenu:
-                    PauseMenu.Update(GetMouseEvent());
-                    break;
-                case GameState.Exit:
-                    Exit();
-                    break;
-                case GameState.Playing:
-                    GameLoop();
-                    break;
-                case GameState.Defeat:
-                    PrepareNewGame();
-                    MainMenu.InfoMessage = "Defeat";
-                    GameState = GameState.MainMenu;
-                    break;
-                case GameState.Victory:
-                    PrepareNewGame();
-                    MainMenu.InfoMessage = "Victory!";
-                    GameState = GameState.MainMenu;
-                    break;
-            }
+            if (GameState == GameState.Playing) GameLoop();
         }
 
-        private void StartNewGame()
+        public void StartNewGame()
         {
             PrepareNewGame();
             GameState = GameState.Playing;
@@ -197,7 +108,7 @@ namespace DungeonCrawler
         {
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
-                GameState = GameState.PauseMenu;
+                GameState = GameState.Paused;
                 return;
             }
 
@@ -256,19 +167,7 @@ namespace DungeonCrawler
                 gameObjects.AddRange(room.AllObjects);
             }
 
-            _graphics.Draw(gameObjects, UserInterface.Elements);
-        }
-
-        private void ChangeResolution()
-        {
-            if (_selectedResolutionIndex == Resolutions.Count - 1) _selectedResolutionIndex = 0;
-            else _selectedResolutionIndex++;
-
-            var resolution = Resolutions[_selectedResolutionIndex];
-
-            ResolutionButton.Text = resolution.Name;
-
-            _graphics.ChangeResolutionTo(resolution.Width, resolution.Height);
+            _graphics.Draw(gameObjects, _userInterface.GetDrawables());
         }
 
         private float GetAngleFromPlayerToCursor()
@@ -295,8 +194,8 @@ namespace DungeonCrawler
         private MouseEvent GetMouseEvent()
         {
             var (x, y) = Mouse.GetState().Position;
-            var (uiX, uiY) = ((float) x / _graphics.WindowWidth * UserInterface.Width,
-                (float) y / _graphics.WindowHeight * UserInterface.Height);
+            var (uiX, uiY) = ((float) x / _graphics.WindowWidth * _userInterface.Width,
+                (float) y / _graphics.WindowHeight * _userInterface.Height);
 
             return new MouseEvent()
             {

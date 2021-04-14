@@ -1,14 +1,8 @@
-﻿using Microsoft.Xna.Framework;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 
-namespace DungeonCrawler.UIObjects
+namespace DungeonCrawler.UI.UIObjects
 {
-    public enum UIObjectState
-    {
-        Active,
-        Inactive
-    };
-
     public abstract class UIObject
     {
         private static long _lastId;

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using DungeonCrawler.GameObjects;
 using DungeonCrawler.GameObjects.Items;
-using DungeonCrawler.UIObjects;
+using DungeonCrawler.UI;
+using DungeonCrawler.UI.UIObjects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -101,12 +102,8 @@ namespace DungeonCrawler
             _graphics.ApplyChanges();
         }
 
-        public void Draw(List<GameObject> gameObjects, List<UIObject> uiObjects)
+        public void Draw(List<GameObject> gameObjects, List<UiDrawable> uiDrawables)
         {
-            _game.GraphicsDevice.Clear(Color.CornflowerBlue);
-
-            _spriteBatch.Begin(sortMode: SpriteSortMode.FrontToBack, samplerState: SamplerState.LinearWrap);
-
             float unitsPerPixel;
             var verticalPadding = 0;
             var horizontalPadding = 0;
@@ -132,6 +129,10 @@ namespace DungeonCrawler
                 unitsPerPixel = (float) WindowWidth / _game.Camera.Width;
             }
 
+            _game.GraphicsDevice.Clear(Color.CornflowerBlue);
+
+            _spriteBatch.Begin(sortMode: SpriteSortMode.FrontToBack, samplerState: SamplerState.LinearWrap);
+
             DrawBlackBars(horizontalPadding, verticalPadding);
 
             foreach (var gameObject in gameObjects)
@@ -139,11 +140,9 @@ namespace DungeonCrawler
                 DrawGameObject(gameObject, unitsPerPixel, horizontalPadding, verticalPadding);
             }
 
-            var uiUnitsPerPixel = (float) WindowWidth / _game.UserInterface.Width;
-
-            foreach (var uiObject in uiObjects)
+            foreach (var uiDrawable in uiDrawables)
             {
-                DrawUIObject(uiObject, uiUnitsPerPixel);
+                DrawUiDrawable(uiDrawable);
             }
 
             _spriteBatch.End();
@@ -157,9 +156,8 @@ namespace DungeonCrawler
             DrawDrawable(drawable);
 
             // Draw health bar for enemy (Need to be refactored)
-            if (gameObject is Enemy)
+            if (gameObject is Enemy enemy)
             {
-                var enemy = gameObject as Enemy;
                 _spriteBatch.Draw(
                     _textures[TextureId.HealthBar],
                     drawable.Position,
@@ -172,9 +170,8 @@ namespace DungeonCrawler
                     HEALTH_BAR_LAYER
                 );
             }
-            else if (gameObject is Player)
+            else if (gameObject is Player player)
             {
-                var player = gameObject as Player;
                 _spriteBatch.Draw(
                     _textures[TextureId.HealthBar],
                     drawable.Position,
@@ -189,45 +186,10 @@ namespace DungeonCrawler
             }
         }
 
-        private void DrawUIObject(UIObject uiObject, float unitsPerPixel)
+        private void DrawUiDrawable(UiDrawable uiDrawable)
         {
-            var stack = new Stack<UIObject>();
-
-            stack.Push(uiObject);
-
-            while (stack.Count > 0)
-            {
-                var current = stack.Pop();
-
-                if (current.State != UIObjectState.Active) continue;
-
-                DrawDrawable(UIObjectToDrawable(current, unitsPerPixel, 0, 0));
-
-                // Draw text on button (Need to be refactored)
-                if (current is Button && (current as Button).Text != "")
-                {
-                    var btn = (current as Button);
-                    var text = btn.Text;
-
-                    var textSize = _testFont.MeasureString(text);
-                    var textLocation = btn.Position  * unitsPerPixel - new Vector2(textSize.X / 2, textSize.Y / 2);
-
-                    _spriteBatch.DrawString(_testFont, text, textLocation, Color.Red, 0, new Vector2(0, 0), 1,
-                        SpriteEffects.None, UI_TEXT_LAYER);
-                }
-                else if (current is TextBlock)
-                {
-                    var textBlock = (current as TextBlock);
-                    var text = textBlock.Text;
-
-                    var textSize = _testFont.MeasureString(text);
-                    var textLocation = textBlock.Position * unitsPerPixel;
-                    _spriteBatch.DrawString(_testFont, text, textLocation * unitsPerPixel, Color.Red, 0, new Vector2(0, 0), 1,
-                        SpriteEffects.None, UI_TEXT_LAYER);
-                }
-
-                current.Children.ForEach(stack.Push);
-            }
+            DrawDrawable(UiDrawableToDrawable(uiDrawable, 0, 0));
+            if (uiDrawable.Text != "") DrawText(uiDrawable);
         }
 
         private void DrawDrawable(Drawable drawable)
@@ -265,15 +227,8 @@ namespace DungeonCrawler
                 case Enemy:
                     textureId = TextureId.Enemy;
                     break;
-                case Door:
-                    if ((gameObject as Door).Open)
-                    {
-                        textureId = TextureId.DoorOpen;
-                    }
-                    else
-                    {
-                        textureId = TextureId.DoorClosed;
-                    }
+                case Door door:
+                    textureId = door.Open ? TextureId.DoorOpen : TextureId.DoorClosed;
                     break;
                 case HealthPack:
                     textureId = TextureId.HealthPack;
@@ -321,41 +276,52 @@ namespace DungeonCrawler
             return drawableGameObject;
         }
 
-        private Drawable UIObjectToDrawable(UIObject uiObject, float unitsPerPixel, int horizontalPadding,
+        private Drawable UiDrawableToDrawable(UiDrawable uiDrawable, int horizontalPadding,
             int verticalPadding)
         {
-            var textureId = uiObject switch
-            {
-                Button => TextureId.ButtonBackground,
-                Menu => TextureId.Default,
-                TextBlock => TextureId.Default,
-                _ => throw new Exception()
-            };
+            var textureId = TextureId.Default;
+            if (uiDrawable.OriginType == typeof(Button)) textureId = TextureId.ButtonBackground;
+            if (uiDrawable.OriginType == typeof(Menu)) textureId = TextureId.Default;
+            if (uiDrawable.OriginType == typeof(TextBlock)) textureId = TextureId.Default;
 
             var texture = _textures[textureId];
-            var scale = new Vector2(uiObject.Width / texture.Width * unitsPerPixel, uiObject.Height / texture.Height * unitsPerPixel);
+            var (onScreenX, onScreenY) = new Vector2(uiDrawable.Width * WindowWidth, uiDrawable.Height * WindowHeight);
+            var scale = new Vector2(onScreenX / texture.Width, onScreenY / texture.Height);
             var origin = new Vector2((float) texture.Width / 2, (float) texture.Height / 2);
             var source = new Rectangle(0, 0, texture.Width, texture.Height);
-            var drawPosition = uiObject.Position * unitsPerPixel + new Vector2(horizontalPadding, verticalPadding);
+            var drawPosition = new Vector2(uiDrawable.Position.X * WindowWidth, uiDrawable.Position.Y * WindowHeight) 
+                               + new Vector2(horizontalPadding, verticalPadding);
             var layer = UI_OBJECT_LAYER;
 
-            if (uiObject is Menu)
+            if (uiDrawable.OriginType == typeof(Menu))
             {
                 layer = UI_BACKGROUND_LAYER;
             }
 
-            var drawableUIObject = new Drawable
+            var drawable = new Drawable
             {
                 Texture = texture,
                 Position = drawPosition,
                 Source = source,
-                Rotation = uiObject.Rotation,
+                Rotation = uiDrawable.Rotation,
                 Origin = origin,
                 Scale = scale,
                 Layer = layer
             };
 
-            return drawableUIObject;
+            return drawable;
+        }
+
+        private void DrawText(UiDrawable obj)
+        {
+            var text = obj.Text;
+            
+            var textSize = _testFont.MeasureString(text);
+            var onScreenPos = new Vector2(obj.Position.X * WindowWidth, obj.Position.Y * WindowHeight);
+            var textLocation = onScreenPos - new Vector2(textSize.X / 2, textSize.Y / 2);
+            
+            _spriteBatch.DrawString(_testFont, text, textLocation, Color.Red, 0, new Vector2(0, 0), 1,
+                SpriteEffects.None, UI_TEXT_LAYER);
         }
 
         private void DrawBlackBars(int horizontalPadding, int verticalPadding)

@@ -1,34 +1,35 @@
+using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace DungeonCrawler.UIObjects
+namespace DungeonCrawler.UI.UIObjects
 {
     public class Button : UIObject
     {
+        private readonly Action _action;
         private ButtonState _previousButtonState;
 
         public string Text { get; set; }
 
-        public Button(string text, Vector2 position, int width, int height, Vector2 mouseFactor) : base(position, width, height)
+        public Button(string text, Vector2 position, int width, int height, Action action) : base(position, width, height)
         {
             _previousButtonState = ButtonState.Released;
             Text = text;
+            _action = action;
         }
 
-        public bool IsPressed(MouseEvent mouseEvent)
+        public void CheckPressed(MouseEvent mouseEvent)
         {
-            var isPressedAndReleased = false;
-
             if (mouseEvent.ButtonState == ButtonState.Released && _previousButtonState == ButtonState.Pressed)
             {
                 if (IsMouseHoveringOver(mouseEvent))
                 {
-                    isPressedAndReleased = true;
+                    _action();
                 }
             }
 
             _previousButtonState = mouseEvent.ButtonState;
-            return isPressedAndReleased;
         }
 
         private bool IsMouseHoveringOver(MouseEvent mouseEvent)
