@@ -16,7 +16,7 @@ namespace DungeonCrawler.Maps
         public int VerticalRooms { get; }
         public Room[,] Rooms { get; }
         public Room CurrentRoom => Rooms[CurrentRoomY, CurrentRoomX];
-        public Player Player { get; }
+        public Player Player { get; protected set; }
 
         public int CurrentRoomX
         {
@@ -47,7 +47,6 @@ namespace DungeonCrawler.Maps
             Rooms = new Room[VerticalRooms, HorizontalRooms];
             CurrentRoomX = 0;
             CurrentRoomY = 0;
-            Player = new Player(this, CurrentRoomX * RoomWidth + 50, CurrentRoomY * RoomHeight + 50);
         }
 
         public void Update(float playerNewRotation)
@@ -109,6 +108,7 @@ namespace DungeonCrawler.Maps
             }
 
             Player.Position = teleportPosition;
+            CurrentRoom.Visited = true;
         }
     }
 }

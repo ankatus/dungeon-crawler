@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DungeonCrawler.GameObjects;
 using DungeonCrawler.Rooms;
 using Microsoft.Xna.Framework;
 
@@ -8,6 +9,7 @@ namespace DungeonCrawler.Maps
     {
         public DefaultMap() : base(1600, 900, 3, 3)
         {
+            // Create rooms
             for (var y = 0; y < VerticalRooms; y++)
             {
                 for (var x = 0; x < HorizontalRooms; x++)
@@ -32,6 +34,10 @@ namespace DungeonCrawler.Maps
                         Rooms[y, x] = new RandomNormalRoom(new Vector2(x * RoomWidth, y * RoomHeight), RoomWidth, RoomHeight, RoomLocation.RightEdge);
                 }
             }
+
+            // Create player
+            Player = new Player(this, CurrentRoomX * RoomWidth + 50, CurrentRoomY * RoomHeight + 50);
+            CurrentRoom.Visited = true;
         }
     }
 }
