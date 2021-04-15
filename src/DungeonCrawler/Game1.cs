@@ -11,6 +11,7 @@ namespace DungeonCrawler
 {
     public enum GameState
     {
+        CameraTravel,
         NotStarted,
         Paused,
         Playing,
@@ -21,8 +22,12 @@ namespace DungeonCrawler
 
     public class Game1 : Game
     {
+        private const int MAP_ZOOM_SPEED = 40;
+        private const int ROOM_ZOOM_SPEED = 15;
+
         private readonly Graphics _graphics;
         private readonly UserInterface _userInterface;
+        private bool _showingMap;
 
         public DefaultMap Map { get; set; }
         public Camera Camera { get; private set; }
@@ -48,8 +53,8 @@ namespace DungeonCrawler
 
             Camera = new Camera((float) windowWidth / windowHeight)
             {
-                Width = Map.HorizontalRooms * Map.RoomWidth,
-                TopLeft = new Point(0, 0),
+                Width = Map.RoomWidth,
+                TopLeft = new Point(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight),
             };
 
             base.Initialize();
@@ -88,6 +93,12 @@ namespace DungeonCrawler
                 GameState = GameState.Defeat;
             }
 
+            if (GameState == GameState.CameraTravel)
+            {
+                if (!Camera.Travelling) GameState = GameState.Playing;
+                else Camera.UpdateTravel();
+            }
+
             if (GameState == GameState.Playing) GameLoop();
         }
 
@@ -100,12 +111,25 @@ namespace DungeonCrawler
         private void PrepareNewGame()
         {
             Map = new DefaultMap();
-            Camera.TopLeft = new Point(0, 0);
-            Camera.Width = Map.HorizontalRooms * Map.RoomWidth;
+            Camera.Width = Map.RoomWidth;
+            Camera.TopLeft = new Point(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
         }
 
         private void GameLoop()
         {
+            if (_showingMap)
+            {
+                if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                {
+                    // Zoom back in
+                    _showingMap = false;
+                    GameState = GameState.CameraTravel;
+                    Camera.StartTravel(new Point(Map.CurrentRoomX * Map.RoomWidth,Map.CurrentRoomY *Map.RoomHeight), Map.RoomWidth, MAP_ZOOM_SPEED);
+                }
+
+                return;
+            }
+
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
                 GameState = GameState.Paused;
@@ -144,18 +168,26 @@ namespace DungeonCrawler
                 Camera.TopLeft.Y--;
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Enter))
+            if (Keyboard.GetState().IsKeyDown(Keys.Space))
             {
-                var currentRoomTopLeft = new Point(Map.CurrentRoomX * Map.RoomWidth,
-                    Map.CurrentRoomY * Map.RoomHeight);
-
-                Camera.ZoomTo(currentRoomTopLeft, Map.RoomWidth, Map.RoomHeight);
+                // Zoom to show map
+                _showingMap = true;
+                GameState = GameState.CameraTravel;
+                Camera.StartTravel(new Point(0,0), Map.RoomWidth * Map.HorizontalRooms, MAP_ZOOM_SPEED);
             }
+
+            // Update map and check if camera should be moved
+            var previousX = Map.CurrentRoomX;
+            var previousY = Map.CurrentRoomY;
 
             Map.Update(GetAngleFromPlayerToCursor());
 
-            // var nextRoomTopLeft = new Point(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight);
-            // Camera.ZoomTo(nextRoomTopLeft, Map.RoomWidth, Map.RoomHeight);
+            if (previousX != Map.CurrentRoomX || previousY != Map.CurrentRoomY)
+            {
+                // Move camera to next room
+                GameState = GameState.CameraTravel;
+                Camera.StartTravel(new Point(Map.CurrentRoomX * Map.RoomWidth,Map.CurrentRoomY *Map.RoomHeight), Map.RoomWidth, ROOM_ZOOM_SPEED);
+            }
         }
 
         protected override void Draw(GameTime gameTime)
@@ -164,6 +196,9 @@ namespace DungeonCrawler
             gameObjects.Add(Map.Player);
             foreach (var room in Map.Rooms)
             {
+                // Do not draw unvisited rooms
+                if (!room.Visited) continue;
+
                 gameObjects.AddRange(room.AllObjects);
             }
 

@@ -20,6 +20,7 @@ namespace DungeonCrawler.Rooms
         public int Width { get; init; }
         public int Height { get; init; }
         public bool Cleared { get; private set; }
+        public bool Visited { get; set; }
         public List<Wall> Walls { get; set; }
         public List<Door> Doors { get; set; }
         public List<Enemy> Enemies { get; set; }

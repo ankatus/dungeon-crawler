@@ -103,6 +103,8 @@ namespace DungeonCrawler.UI
                         break;
                     case GameState.Exit:
                         break;
+                    case GameState.CameraTravel:
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
