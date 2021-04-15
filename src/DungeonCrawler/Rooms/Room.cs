@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using DungeonCrawler.GameObjects;
 using DungeonCrawler.GameObjects.Items;
+using DungeonCrawler.GameObjects.Enemies;
 using Microsoft.Xna.Framework;
 
 namespace DungeonCrawler.Rooms
@@ -12,7 +13,7 @@ namespace DungeonCrawler.Rooms
     {
         private const int WALL_THICKNESS = 10;
         private const int DOOR_WIDTH = 100;
-        protected List<Vector2> PossibleEnemySpawnPoints { get; set; }
+        protected List<(Vector2, bool)> EnemySpawnPoints { get; set; }
         protected Random RandomGenerator { get; private set; }
 
         public readonly Vector2 Position;
@@ -47,8 +48,8 @@ namespace DungeonCrawler.Rooms
             Enemies = new List<Enemy>();
             Projectiles = new List<Projectile>();
             Items = new List<Item>();
-            RoomGraph = new RoomGraph(this, new Enemy(this, Vector2.Zero, 0, 0));
-            PossibleEnemySpawnPoints = new List<Vector2>();
+            RoomGraph = new RoomGraph(this, new DefaultEnemy(this, Vector2.Zero, 0, 0));
+            EnemySpawnPoints = new List<(Vector2, bool)>();
             RandomGenerator = new Random();
         }
 
@@ -86,10 +87,28 @@ namespace DungeonCrawler.Rooms
 
         protected void SpawnEnemyOnRandomSpawnPoint(Enemy enemy)
         {
-            if (PossibleEnemySpawnPoints.Count > 0)
+            if (EnemySpawnPoints.Count > 0)
             {
-                var randomIndex = RandomGenerator.Next(0, PossibleEnemySpawnPoints.Count);
-                enemy.Position = PossibleEnemySpawnPoints[randomIndex];
+                //Find only unused spawnpoints (Item2 is boolean indicating if spawn point is available)
+                var possibleSpawnPoints = EnemySpawnPoints.FindAll(spawnPoint => spawnPoint.Item2 == true);
+
+                if (possibleSpawnPoints.Count == 0)
+                {
+                    //All spawn points are used
+                    throw new Exception("Too few spawnpoints for enemies");
+                }
+
+                //Get random spawnpoint
+                var randomIndex = RandomGenerator.Next(0, possibleSpawnPoints.Count);
+                var (position, _) = possibleSpawnPoints[randomIndex];
+
+                //Set enemy position to available spawnpoint
+                enemy.Position = position;
+
+                //Indicate that spawnpoint is used
+                EnemySpawnPoints[randomIndex] = (position, true);
+
+                //Add enemy to room
                 Enemies.Add(enemy);
             }
         }

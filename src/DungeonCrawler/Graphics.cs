@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using DungeonCrawler.GameObjects;
 using DungeonCrawler.GameObjects.Items;
+using DungeonCrawler.GameObjects.Enemies;
 using DungeonCrawler.UI;
 using DungeonCrawler.UI.UIObjects;
 using Microsoft.Xna.Framework;
@@ -16,17 +17,22 @@ namespace DungeonCrawler
         public enum TextureId
         {
             Default,
-            Room,
             Player,
-            DefaultProjectile,
-            Wall,
-            Enemy,
             ButtonBackground,
             HealthBar,
+            //Room related
+            Room,
+            Wall,
             DoorOpen,
             DoorClosed,
+            //Enemies
+            DefaultEnemy,
+            StrongEnemy,
+            //Items
             ShotgunItem,
-            HealthPack
+            HealthPack,
+            //Projectiles
+            DefaultProjectile
         };
 
         public int WindowWidth { get; private set; }
@@ -224,8 +230,11 @@ namespace DungeonCrawler
                 case Wall:
                     textureId = TextureId.Wall;
                     break;
-                case Enemy:
-                    textureId = TextureId.Enemy;
+                case DefaultEnemy:
+                    textureId = TextureId.DefaultEnemy;
+                    break;
+                case StrongEnemy:
+                    textureId = TextureId.StrongEnemy;
                     break;
                 case Door door:
                     textureId = door.Open ? TextureId.DoorOpen : TextureId.DoorClosed;
@@ -289,7 +298,7 @@ namespace DungeonCrawler
             var scale = new Vector2(onScreenX / texture.Width, onScreenY / texture.Height);
             var origin = new Vector2((float) texture.Width / 2, (float) texture.Height / 2);
             var source = new Rectangle(0, 0, texture.Width, texture.Height);
-            var drawPosition = new Vector2(uiDrawable.Position.X * WindowWidth, uiDrawable.Position.Y * WindowHeight) 
+            var drawPosition = new Vector2(uiDrawable.Position.X * WindowWidth, uiDrawable.Position.Y * WindowHeight)
                                + new Vector2(horizontalPadding, verticalPadding);
             var layer = UI_OBJECT_LAYER;
 
@@ -315,11 +324,11 @@ namespace DungeonCrawler
         private void DrawText(UiDrawable obj)
         {
             var text = obj.Text;
-            
+
             var textSize = _testFont.MeasureString(text);
             var onScreenPos = new Vector2(obj.Position.X * WindowWidth, obj.Position.Y * WindowHeight);
             var textLocation = onScreenPos - new Vector2(textSize.X / 2, textSize.Y / 2);
-            
+
             _spriteBatch.DrawString(_testFont, text, textLocation, Color.Red, 0, new Vector2(0, 0), 1,
                 SpriteEffects.None, UI_TEXT_LAYER);
         }

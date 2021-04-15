@@ -7,20 +7,20 @@ using System.Text;
 using System.Threading.Tasks;
 using DungeonCrawler.Rooms;
 using Microsoft.Xna.Framework.Graphics;
+using DungeonCrawler.Guns;
 
-namespace DungeonCrawler.GameObjects
+namespace DungeonCrawler.GameObjects.Enemies
 {
-    public class Enemy : GameObject
+    public abstract class Enemy : GameObject
     {
         private const int PATH_UPDATE_INTERVAL = 1;
 
         private readonly Room _room;
 
-        public float MaxHealth { get; }
-        public float CurrentHealth { get; private set; }
-        private readonly int _movingSpeed;
-        private DateTime _lastShotTime;
-        private readonly TimeSpan _minTimeBetweenShots;
+        public float MaxHealth { get; protected set; }
+        public float CurrentHealth { get; protected set; }
+        protected int MovingSpeed { get; set; }
+        protected Gun ActiveGun { get; set; }
         private int _ticksSincePathUpdate;
         private List<Point> _path;
 
@@ -29,8 +29,8 @@ namespace DungeonCrawler.GameObjects
             _room = room;
             MaxHealth = 20;
             CurrentHealth = MaxHealth;
-            _movingSpeed = 2;
-            _minTimeBetweenShots = TimeSpan.FromMilliseconds(100);
+            MovingSpeed = 2;
+            ActiveGun = new DefaultGun(this);
             _ticksSincePathUpdate = PATH_UPDATE_INTERVAL;
         }
 
@@ -56,9 +56,11 @@ namespace DungeonCrawler.GameObjects
                 var localTargetPosition = target.Position - _room.Position;
                 var actualTarget = localTargetPosition;
                 var distanceVector = Vector2.Subtract(localTargetPosition, localPosition);
+
+                //If distance too long, set actual target to MAX_TARGET_DISTANCE towards target
                 if (distanceVector.Length() > MAX_TARGET_DISTANCE)
                 {
-                    actualTarget = localPosition + distanceVector / 2;
+                    actualTarget = localPosition + Vector2.Normalize(distanceVector) * MAX_TARGET_DISTANCE;
                 }
 
                 var path = Pathfinding.FindPath((localPosition / _room.RoomGraph.TranslationFactor).ToPoint(), (actualTarget / _room.RoomGraph.TranslationFactor).ToPoint(), _room.RoomGraph.Graph);
@@ -87,7 +89,7 @@ namespace DungeonCrawler.GameObjects
 
             // Move
             var travelDirection = Vector2.Normalize(Vector2.Subtract(nextPosition, Position));
-            Position += travelDirection * _movingSpeed;
+            Position += travelDirection * MovingSpeed;
 
             // // If overlapping, move back until not overlapping
             // while (CheckWalls())
@@ -103,16 +105,10 @@ namespace DungeonCrawler.GameObjects
 
         private void Shoot(GameObject target)
         {
-            if (DateTime.Now - _lastShotTime <= _minTimeBetweenShots) return;
-
-            // Create vector from player to target coordinates
+            // Shoots forward
             var projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
 
-            var projectile =
-                new Projectile((int) Position.X, (int) Position.Y, projectileTravelVector, 5, this);
-
-            _room.Projectiles.Add(projectile);
-            _lastShotTime = DateTime.Now;
+            _room.Projectiles.AddRange(ActiveGun.Shoot(Position, projectileTravelVector));
         }
 
         public void ProjectileCollision(Projectile projectile)
