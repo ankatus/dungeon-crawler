@@ -106,7 +106,7 @@ namespace DungeonCrawler.Rooms
                 enemy.Position = position;
 
                 //Indicate that spawnpoint is used
-                EnemySpawnPoints[randomIndex] = (position, true);
+                EnemySpawnPoints[randomIndex] = (position, false);
 
                 //Add enemy to room
                 Enemies.Add(enemy);
