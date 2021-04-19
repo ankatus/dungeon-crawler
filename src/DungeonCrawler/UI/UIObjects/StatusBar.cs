@@ -8,7 +8,7 @@ namespace DungeonCrawler.UI.UIObjects
     public class StatusBar : UIObject
     {
         private Vector2 _gunIndicatorsStart;
-        private List<TextBlock> _gunIndicators;
+        private readonly List<TextBlock> _gunIndicators;
         private TextBlock _hpIndicator;
 
         public StatusBar(Vector2 position, int width, int height) : base(position, width, height)
@@ -33,6 +33,7 @@ namespace DungeonCrawler.UI.UIObjects
                 position.X += index * 15;
                 var indicator = new TextBlock((index + 1).ToString(), position, 0, 0);
                 Children.Add(indicator);
+                _gunIndicators.Add(indicator);
             }
         }
 
