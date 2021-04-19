@@ -17,6 +17,32 @@ namespace DungeonCrawler
             var nodes = new NodeContainer();
             var open = new List<Node>();
 
+            if (map[end.Y, end.X])
+            {
+                //end node is not passable
+                //find nearest open node
+                var position = end;
+                var foundNearestOpenNode = false;
+                var currentOffset = 1;
+                while (foundNearestOpenNode == false)
+                {
+                    for(var y = -currentOffset; y <= currentOffset; y+= currentOffset * 2)
+                    {
+                        for (var x = -currentOffset; x <= currentOffset; x+= currentOffset * 2)
+                        {
+                            var neighborPosition = new Point(position.X + x, position.Y + y);
+
+                            //Node is inside map and open
+                            if (IsInsideMap(neighborPosition, map) && map[neighborPosition.Y, neighborPosition.X] == false)
+                            {
+                                end = neighborPosition;
+                                foundNearestOpenNode = true;
+                            }
+                        }
+                    }
+                }
+            }
+
             var current = new Node(start, null);
             current.GScore = 0;
             current.FScore = Heuristic(current.Position, end);

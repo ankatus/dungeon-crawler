@@ -30,7 +30,7 @@ namespace DungeonCrawler.GameObjects
             }
             else
             {
-                // Horizontal wall
+                // Vertical wall
                 var height = Math.Abs(a.Y - b.Y);
                 var x = a.X;
                 var y = Math.Min(a.Y, b.Y) + height / 2;
