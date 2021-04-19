@@ -17,10 +17,11 @@ namespace DungeonCrawler
             var nodes = new NodeContainer();
             var open = new List<Node>();
 
+            // Check if end point is passable
             if (map[end.Y, end.X])
             {
-                //end node is not passable
-                //find nearest open node
+                // End node is not passable
+                // Find nearest open node
                 var position = end;
                 var foundNearestOpenNode = false;
                 var currentOffset = 1;
@@ -32,7 +33,7 @@ namespace DungeonCrawler
                         {
                             var neighborPosition = new Point(position.X + x, position.Y + y);
 
-                            //Node is inside map and open
+                            // Check that node is inside map and open
                             if (IsInsideMap(neighborPosition, map) && map[neighborPosition.Y, neighborPosition.X] == false)
                             {
                                 end = neighborPosition;
@@ -40,6 +41,8 @@ namespace DungeonCrawler
                             }
                         }
                     }
+
+                    currentOffset++;
                 }
             }
 
