@@ -16,6 +16,7 @@ namespace DungeonCrawler
     {
         public enum TextureId
         {
+            Transparent,
             Default,
             Player,
             ButtonBackground,
@@ -292,6 +293,7 @@ namespace DungeonCrawler
             if (uiDrawable.OriginType == typeof(Button)) textureId = TextureId.ButtonBackground;
             if (uiDrawable.OriginType == typeof(Menu)) textureId = TextureId.Default;
             if (uiDrawable.OriginType == typeof(TextBlock)) textureId = TextureId.Default;
+            if (uiDrawable.OriginType == typeof(StatusBar)) textureId = TextureId.Transparent;
 
             var texture = _textures[textureId];
             var (onScreenX, onScreenY) = new Vector2(uiDrawable.Width * WindowWidth, uiDrawable.Height * WindowHeight);

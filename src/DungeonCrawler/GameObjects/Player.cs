@@ -11,12 +11,12 @@ namespace DungeonCrawler.GameObjects
     public class Player : GameObject
     {
         public List<Gun> Guns { get; }
-        public Gun ActiveGun { get { return Guns[activeGunIndex]; } }
+        public Gun ActiveGun => Guns[_activeGunIndex];
         public float MaxHealth { get; }
         public float CurrentHealth { get; set; }
         private readonly int _movingSpeed;
         private readonly GameMap _map;
-        private int activeGunIndex;
+        private int _activeGunIndex;
 
         public Player(GameMap map, int x, int y) : base(x, y, 10, 30)
         {
@@ -25,9 +25,8 @@ namespace DungeonCrawler.GameObjects
             MaxHealth = 50;
             CurrentHealth = MaxHealth;
             var defaultGun = new DefaultGun(this);
-            Guns = new List<Gun>();
-            Guns.Add(defaultGun);
-            activeGunIndex = 0;
+            Guns = new List<Gun> {defaultGun};
+            _activeGunIndex = 0;
         }
 
         public void Update(float newFacing)
@@ -55,7 +54,7 @@ namespace DungeonCrawler.GameObjects
         {
             if (gunIndex < Guns.Count)
             {
-                activeGunIndex = gunIndex;
+                _activeGunIndex = gunIndex;
             }
         }
 

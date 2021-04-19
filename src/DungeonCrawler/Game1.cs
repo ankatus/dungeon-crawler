@@ -67,7 +67,7 @@ namespace DungeonCrawler
 
         protected override void Update(GameTime gameTime)
         {
-            _userInterface.Update(GetMouseEvent());
+            _userInterface.Update(GetMouseEvent(), Map.Player);
 
             // Check if game is won
             var victory = true;

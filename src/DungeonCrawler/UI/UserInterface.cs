@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DungeonCrawler.GameObjects;
 using DungeonCrawler.UI.UIObjects;
 using Microsoft.Xna.Framework;
 
@@ -15,6 +16,7 @@ namespace DungeonCrawler.UI
 
         public int Width { get; }
         public int Height { get; }
+        public StatusBar StatusBar { get; private set; }
         public Menu MainMenu { get; set; }
         public Menu OptionsMenu { get; set; }
         public Menu PauseMenu { get; set; }
@@ -72,12 +74,17 @@ namespace DungeonCrawler.UI
             PauseMenu.AddButton("Exit to main menu", () => { ShowMainMenu("Main Menu"); });
             PauseMenu.InfoMessage = "Game Paused";
 
+            // Status bar
+            var statusBarPosition = new Vector2(Width / 2 - 375, Height - 20);
+            StatusBar = new StatusBar(statusBarPosition, 200, 200);
+
             Elements.Add(MainMenu);
             Elements.Add(OptionsMenu);
             Elements.Add(PauseMenu);
+            Elements.Add(StatusBar);
         }
 
-        public void Update(MouseEvent mouseEvent)
+        public void Update(MouseEvent mouseEvent, Player player)
         {
             if (_game.GameState != _lastGameState)
             {
@@ -115,6 +122,7 @@ namespace DungeonCrawler.UI
             foreach (var element in Elements)
             {
                 if (element is Menu menu && menu.State != UIObjectState.Inactive) menu.Update(mouseEvent);
+                if (element is StatusBar statusBar) statusBar.Update(player);
             }
         }
 
