@@ -13,6 +13,9 @@ namespace DungeonCrawler.Rooms
     {
         private const int WALL_THICKNESS = 10;
         private const int DOOR_WIDTH = 100;
+
+        private int _enemyUpdateIndex;
+
         protected List<(Vector2, bool)> EnemySpawnPoints { get; set; }
         protected Random RandomGenerator { get; private set; }
 
@@ -55,7 +58,15 @@ namespace DungeonCrawler.Rooms
 
         public void Update(Player player)
         {
-            Enemies.ForEach(enemy => enemy.Update(player));
+            // Staggered update for enemies
+            if (_enemyUpdateIndex == Enemies.Count) _enemyUpdateIndex = 0;
+            for (var i = 0; i < Enemies.Count; i++)
+            {
+                if (i == _enemyUpdateIndex) Enemies[i].Update(player, false);
+                else Enemies[i].Update(player, true);
+            }
+            _enemyUpdateIndex++;
+
             Doors.ForEach(door => door.Update(player));
             Items.ForEach(item => item.Update(player));
 

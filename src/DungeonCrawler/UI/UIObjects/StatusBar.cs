@@ -31,7 +31,7 @@ namespace DungeonCrawler.UI.UIObjects
             {
                 var position = startPos;
                 position.X += index * 15;
-                var indicator = new TextBlock((index + 1).ToString(), position, 0, 0);
+                var indicator = new TextBlock(((index + 1) * 10).ToString(), position, 0, 0);
                 Children.Add(indicator);
             }
         }

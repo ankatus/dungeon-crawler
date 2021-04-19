@@ -34,41 +34,55 @@ namespace DungeonCrawler.GameObjects.Enemies
             _ticksSincePathUpdate = PATH_UPDATE_INTERVAL;
         }
 
-        public void Update(GameObject target)
+        public void Update(GameObject target, bool noPathUpdate)
         {
             if (State != GameObjectState.Active) return;
-            ChaseTarget(target);
+            ChaseTarget(target, noPathUpdate);
             Shoot(target);
         }
 
-        private void ChaseTarget(GameObject target)
+        private void ChaseTarget(GameObject target, bool noPathUpdate)
         {
             // Rotate towards target
             var (x, y) = Vector2.Subtract(target.Position, Position);
             Rotation = (float) Math.Atan2(y, x);
 
-            if (_ticksSincePathUpdate >= PATH_UPDATE_INTERVAL)
+            if (_ticksSincePathUpdate >= PATH_UPDATE_INTERVAL && !noPathUpdate)
             {
                 // Calculate path
                 const int MAX_TARGET_DISTANCE = 1000;
+                const int MIN_TARGET_DISTANCE = 100;
+                const int MOVE_BACK_DISTANCE = 90;
+                const int MOVE_BACK_AMOUNT = 10;
 
                 var localPosition = Position - _room.Position;
                 var localTargetPosition = target.Position - _room.Position;
                 var actualTarget = localTargetPosition;
                 var distanceVector = Vector2.Subtract(localTargetPosition, localPosition);
 
-                //If distance too long, set actual target to MAX_TARGET_DISTANCE towards target
+                // If distance is too long, set actual target to MAX_TARGET_DISTANCE towards target
                 if (distanceVector.Length() > MAX_TARGET_DISTANCE)
                 {
                     actualTarget = localPosition + Vector2.Normalize(distanceVector) * MAX_TARGET_DISTANCE;
+                }
+
+                // If Distance is very short, move back
+                if (distanceVector.Length() < MOVE_BACK_DISTANCE)
+                {
+                    actualTarget = localPosition - Vector2.Normalize(distanceVector) * MOVE_BACK_AMOUNT;
+                }
+                // If Distance is moderately short, stop
+                else if (distanceVector.Length() < MIN_TARGET_DISTANCE)
+                {
+                    _path = new List<Point>();
+                    _ticksSincePathUpdate = 0;
+                    return;
                 }
 
                 var path = Pathfinding.FindPath((localPosition / _room.RoomGraph.TranslationFactor).ToPoint(), (actualTarget / _room.RoomGraph.TranslationFactor).ToPoint(), _room.RoomGraph.Graph);
 
                 // If pathfinding failed, path will be empty
                 if (path.Count > 0) _path = path;
-
-                _ticksSincePathUpdate = 0;
             }
             else
             {
