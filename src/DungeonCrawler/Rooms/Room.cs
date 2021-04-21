@@ -77,7 +77,12 @@ namespace DungeonCrawler.Rooms
             Doors.ForEach(door => door.Update(player));
             Items.ForEach(item => item.Update(player));
 
-            Projectiles.ForEach(projectile => projectile.Update(projectileCollisionObjects));
+            // Has to be for-loop, as collection may be modified during update by an exploding projectile
+            for (var i = 0; i < Projectiles.Count; i++)
+            {
+                var projectile = Projectiles[i];
+                projectile.Update(this);
+            }
 
             PruneInActiveObjects();
 
