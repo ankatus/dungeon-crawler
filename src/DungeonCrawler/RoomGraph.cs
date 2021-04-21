@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using DungeonCrawler.GameObjects;
 using DungeonCrawler.Rooms;
 using Microsoft.Xna.Framework;
@@ -15,7 +16,7 @@ namespace DungeonCrawler
 
     public class RoomGraph
     {
-        private const int TRANSLATION_FACTOR = 4;
+        private const int TRANSLATION_FACTOR = 10;
 
         private readonly Room _room;
         private readonly int _actorWidth;
@@ -37,22 +38,23 @@ namespace DungeonCrawler
             foreach (var wall in _room.Walls)
             {
                 var translatedPosition = (wall.Position - _room.Position) / TRANSLATION_FACTOR;
-                var translatedWidth = wall.Width / TRANSLATION_FACTOR;
-                var translatedHeight = wall.Height / TRANSLATION_FACTOR;
-                var translatedActorWidth = _actorWidth / TRANSLATION_FACTOR;
+                var translatedWidth = Math.Ceiling((float) wall.Width / TRANSLATION_FACTOR);
+                var translatedHeight = Math.Ceiling((float) wall.Height / TRANSLATION_FACTOR);
+                var translatedEnemySize = 10 / TRANSLATION_FACTOR;
 
-                for (var y = (int) translatedPosition.Y - translatedHeight / 2;// - translatedActorWidth / 2;
-                    y < (int) translatedPosition.Y + translatedHeight / 2;// + translatedActorWidth / 2;
-                    y++)
+                var yStart = (int) (translatedPosition.Y - translatedHeight / 2 - translatedEnemySize);
+                var yEnd = (int) (translatedPosition.Y + translatedHeight / 2 + translatedEnemySize);
+                var xStart = (int) (translatedPosition.X - translatedWidth / 2 - translatedEnemySize);
+                var xEnd = (int) (translatedPosition.X + translatedWidth / 2 + translatedEnemySize);
+                for (var y = yStart; y <= yEnd; y++)
                 {
-                    for (var x = (int) translatedPosition.X - translatedWidth / 2;// - translatedActorWidth / 2;
-                        x < (int)translatedPosition.X + translatedWidth / 2;// + translatedActorWidth / 2;
-                        x++)
+                    for (var x = xStart; x <= xEnd; x++)
                     {
                         if (!Pathfinding.IsInsideMap(new Point(x, y), _graph)) continue;
                         _graph[y, x] = NodeType.Closed;
                     }
                 }
+
             }
 
             for (var y = 0; y < _room.Height / TRANSLATION_FACTOR; y++)
@@ -62,12 +64,26 @@ namespace DungeonCrawler
                     if (_graph[y, x] is NodeType.Closed or NodeType.Impassable) Graph[y, x] = true;
                 }
             }
+
+            //int height = Graph.GetLength(0);
+            //int width = Graph.GetLength(1);
+            //Debug.WriteLine(height);
+            //Debug.WriteLine(width);
+            //for (int i = 0; i < height; i++)
+            //{
+            //    for (int j = 0; j < width; j++)
+            //    {
+            //        string text = Graph[i, j] ? "1" : "0";
+            //        Debug.Write(text);
+            //    }
+            //    Debug.Write(Environment.NewLine);
+            //}
         }
 
         private static int GetActorWidth(GameObject actor)
         {
-            return (int) Math.Sqrt(actor.Width / TRANSLATION_FACTOR * actor.Width / TRANSLATION_FACTOR +
-                                   actor.Height / TRANSLATION_FACTOR * actor.Height / TRANSLATION_FACTOR);
+            //Get diameter
+            return (int) Math.Sqrt(actor.Width * actor.Width + actor.Height * actor.Height);
         }
     }
 }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using DungeonCrawler.Rooms;
 using Microsoft.Xna.Framework.Graphics;
 using DungeonCrawler.Guns;
+using System.Diagnostics;
 
 namespace DungeonCrawler.GameObjects.Enemies
 {
@@ -34,41 +35,66 @@ namespace DungeonCrawler.GameObjects.Enemies
             _ticksSincePathUpdate = PATH_UPDATE_INTERVAL;
         }
 
-        public void Update(GameObject target)
+        public void Update(GameObject target, List<GameObject> gameObjects, bool noPathUpdate)
         {
             if (State != GameObjectState.Active) return;
-            ChaseTarget(target);
-            Shoot(target);
+            ChaseTarget(target, gameObjects, noPathUpdate);
+            Shoot(gameObjects);
         }
 
-        private void ChaseTarget(GameObject target)
+        private void ChaseTarget(GameObject target, List<GameObject> gameObjects, bool noPathUpdate)
         {
             // Rotate towards target
             var (x, y) = Vector2.Subtract(target.Position, Position);
             Rotation = (float) Math.Atan2(y, x);
 
-            if (_ticksSincePathUpdate >= PATH_UPDATE_INTERVAL)
+            if (_ticksSincePathUpdate >= PATH_UPDATE_INTERVAL && !noPathUpdate)
             {
                 // Calculate path
                 const int MAX_TARGET_DISTANCE = 1000;
+                const int MIN_TARGET_DISTANCE = 100;
+                const int MOVE_BACK_DISTANCE = 90;
+                const int MOVE_BACK_AMOUNT = 10;
 
                 var localPosition = Position - _room.Position;
                 var localTargetPosition = target.Position - _room.Position;
                 var actualTarget = localTargetPosition;
                 var distanceVector = Vector2.Subtract(localTargetPosition, localPosition);
 
-                //If distance too long, set actual target to MAX_TARGET_DISTANCE towards target
+                // If distance is too long, set actual target to MAX_TARGET_DISTANCE towards target
                 if (distanceVector.Length() > MAX_TARGET_DISTANCE)
                 {
                     actualTarget = localPosition + Vector2.Normalize(distanceVector) * MAX_TARGET_DISTANCE;
+                }
+
+                // Check if we are close to target
+                if (distanceVector.Length() < MIN_TARGET_DISTANCE)
+                {
+                    // Calculate if target is visible
+                    var targetIsVisible = IsProjectileGoingToHitPlayer(gameObjects);
+
+                    // Only if target is visible care about being too close to target
+                    if (targetIsVisible)
+                    {
+                        if (distanceVector.Length() < MOVE_BACK_DISTANCE)
+                        {
+                            // Move back, too close to target
+                            actualTarget = localPosition - Vector2.Normalize(distanceVector) * MOVE_BACK_AMOUNT;
+                        }
+                        else
+                        {
+                            // Stop, close enough to target
+                            _path = new List<Point>();
+                            _ticksSincePathUpdate = 0;
+                            return;
+                        }
+                    }
                 }
 
                 var path = Pathfinding.FindPath((localPosition / _room.RoomGraph.TranslationFactor).ToPoint(), (actualTarget / _room.RoomGraph.TranslationFactor).ToPoint(), _room.RoomGraph.Graph);
 
                 // If pathfinding failed, path will be empty
                 if (path.Count > 0) _path = path;
-
-                _ticksSincePathUpdate = 0;
             }
             else
             {
@@ -103,13 +129,52 @@ namespace DungeonCrawler.GameObjects.Enemies
             return CollisionDetection.GetOverlaps(this, _room.Walls.Cast<GameObject>().ToList()).Count > 0;
         }
 
-        private void Shoot(GameObject target)
+        private void Shoot(List<GameObject> gameObjects)
         {
-            // Shoots forward
             var projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
 
-            _room.Projectiles.AddRange(ActiveGun.Shoot(Position, projectileTravelVector));
+            if (IsProjectileGoingToHitPlayer(gameObjects)) _room.Projectiles.AddRange(ActiveGun.Shoot(Position, projectileTravelVector));
         }
+
+        private bool IsProjectileGoingToHitPlayer(List<GameObject> gameObjects)
+        {
+            // Enemy is always facing player so travel vector can be calculated using rotation
+            var projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
+
+            var fakeProjectile = new Projectile(Position, projectileTravelVector, 0, 2, this);
+            var projectileHit = false;
+            var projectileHitPlayer = false;
+
+            // Find if projectile is going to hit player (if player stays still)
+            while (!projectileHit)
+            {
+                fakeProjectile.Position += fakeProjectile.Velocity;
+                var collisions = CollisionDetection.GetCollisions(fakeProjectile, gameObjects);
+
+                foreach (var gameObject in collisions)
+                {
+                    if (gameObject.Id == fakeProjectile.Source.Id)
+                        continue;
+
+                    if (gameObject is Wall or Door)
+                    {
+                        projectileHit = true;
+                    }
+                    else if (gameObject is Enemy)
+                    {
+                        projectileHit = true;
+                    }
+                    else if (gameObject is Player)
+                    {
+                        projectileHit = true;
+                        projectileHitPlayer = true;
+                    }
+                }
+            }
+
+            return projectileHitPlayer;
+        }
+
 
         public void ProjectileCollision(Projectile projectile)
         {
