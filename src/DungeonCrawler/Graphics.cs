@@ -31,6 +31,7 @@ namespace DungeonCrawler
             StrongEnemy,
             //Items
             ShotgunItem,
+            ExplosionGunItem,
             HealthPack,
             //Projectiles
             DefaultProjectile
@@ -245,6 +246,9 @@ namespace DungeonCrawler
                     break;
                 case ShotgunItem:
                     textureId = TextureId.ShotgunItem;
+                    break;
+                case ExplosionGunItem:
+                    textureId = TextureId.ExplosionGunItem;
                     break;
                 default:
                     throw new Exception();

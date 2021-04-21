@@ -72,6 +72,7 @@ namespace DungeonCrawler.Rooms
             // Spawn items
             Items.Add(new HealthPack(Position + new Vector2(300, 300), 0.5f));
             Items.Add(new ShotgunItem(Position + new Vector2(400, 400)));
+            Items.Add(new ExplosionGunItem(Position + new Vector2(500, 500)));
         }
 
         private void CreateWalls1()
