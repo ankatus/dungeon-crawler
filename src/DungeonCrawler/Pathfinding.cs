@@ -7,9 +7,11 @@ namespace DungeonCrawler
 {
     public static class Pathfinding
     {
-        private const int DEFAULT_MAX_SEARCH_TIME = 10;
+        private const int DEFAULT_MAX_PATH_SEARCH_TIME = 10;
+        private const int DEFAULT_MAX_IS_END_POINT_VISIBLE_SEARCH_TIME = 5;
+        private const int DEFAULT_MAX_NEAREST_OPEN_NODE_SEARCH_TIME = 5;
 
-        public static List<Point> FindPath(Point start, Point end, bool[,] map, int maxSearchTime = DEFAULT_MAX_SEARCH_TIME)
+        public static List<Point> FindPath(Point start, Point end, bool[,] map, int maxSearchTime = DEFAULT_MAX_PATH_SEARCH_TIME)
         {
             var timer = new Stopwatch();
             timer.Start();
@@ -17,34 +19,10 @@ namespace DungeonCrawler
             var nodes = new NodeContainer();
             var open = new List<Node>();
 
-            // Check if end point is passable
-            if (map[end.Y, end.X])
-            {
-                // End node is not passable
-                // Find nearest open node
-                var position = end;
-                var foundNearestOpenNode = false;
-                var currentOffset = 1;
-                while (foundNearestOpenNode == false)
-                {
-                    for(var y = -currentOffset; y <= currentOffset; y+= currentOffset * 2)
-                    {
-                        for (var x = -currentOffset; x <= currentOffset; x+= currentOffset * 2)
-                        {
-                            var neighborPosition = new Point(position.X + x, position.Y + y);
+            var closestPassableEndPoint = FindNearestPassablePoint(end, map);
+            if (closestPassableEndPoint == null) return null;
 
-                            // Check that node is inside map and open
-                            if (IsInsideMap(neighborPosition, map) && map[neighborPosition.Y, neighborPosition.X] == false)
-                            {
-                                end = neighborPosition;
-                                foundNearestOpenNode = true;
-                            }
-                        }
-                    }
-
-                    currentOffset++;
-                }
-            }
+            end = (Point) closestPassableEndPoint;
 
             var current = new Node(start, null);
             current.GScore = 0;
@@ -92,7 +70,7 @@ namespace DungeonCrawler
                 }
             }
 
-            var path = new List<Point> {current.Position};
+            var path = new List<Point> { current.Position };
             while (current.Parent is not null)
             {
                 current = current.Parent;
@@ -137,6 +115,46 @@ namespace DungeonCrawler
             }
 
             return neighbors;
+        }
+
+        private static Point? FindNearestPassablePoint(Point point, bool[,] map, int maxSearchTime = DEFAULT_MAX_NEAREST_OPEN_NODE_SEARCH_TIME)
+        {
+            var timer = new Stopwatch();
+            timer.Start();
+
+            // Check if point is passable
+            if (map[point.Y, point.X])
+            {
+                // Point is not passable
+                // Find nearest open point
+                var position = point;
+                var foundNearestOpenPoint = false;
+                var currentOffset = 1;
+                while (foundNearestOpenPoint == false)
+                {
+                    // Exit if takes too long
+                    if (timer.Elapsed.Milliseconds >= maxSearchTime) return null;
+
+                    for (var y = -currentOffset; y <= currentOffset; y += currentOffset * 2)
+                    {
+                        for (var x = -currentOffset; x <= currentOffset; x += currentOffset * 2)
+                        {
+                            var neighborPosition = new Point(position.X + x, position.Y + y);
+
+                            // Check that node is inside map and open
+                            if (IsInsideMap(neighborPosition, map) && map[neighborPosition.Y, neighborPosition.X] == false)
+                            {
+                                point = neighborPosition;
+                                foundNearestOpenPoint = true;
+                            }
+                        }
+                    }
+
+                    currentOffset++;
+                }
+            }
+
+            return point;
         }
 
         public static bool IsInsideMap<T>(Point point, T[,] map)

@@ -58,24 +58,24 @@ namespace DungeonCrawler.Rooms
 
         public void Update(Player player)
         {
+            var projectileCollisionObjects = new List<GameObject>()
+               .Concat(Walls)
+               .Concat(Doors)
+               .Concat(Enemies)
+               .ToList();
+            projectileCollisionObjects.Add(player);
+
             // Staggered update for enemies
             if (_enemyUpdateIndex == Enemies.Count) _enemyUpdateIndex = 0;
             for (var i = 0; i < Enemies.Count; i++)
             {
-                if (i == _enemyUpdateIndex) Enemies[i].Update(player, false);
-                else Enemies[i].Update(player, true);
+                if (i == _enemyUpdateIndex) Enemies[i].Update(player, projectileCollisionObjects, false);
+                else Enemies[i].Update(player, projectileCollisionObjects, true);
             }
             _enemyUpdateIndex++;
 
             Doors.ForEach(door => door.Update(player));
             Items.ForEach(item => item.Update(player));
-
-            var projectileCollisionObjects = new List<GameObject>()
-                .Concat(Walls)
-                .Concat(Doors)
-                .Concat(Enemies)
-                .ToList();
-            projectileCollisionObjects.Add(player);
 
             Projectiles.ForEach(projectile => projectile.Update(projectileCollisionObjects));
 
