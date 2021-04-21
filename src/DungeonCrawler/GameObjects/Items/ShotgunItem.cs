@@ -18,6 +18,8 @@ namespace DungeonCrawler.GameObjects.Items
         {
             var shotgun = new Shotgun(player);
             player.Guns.Add(shotgun);
+            var explosionGun = new ExplosionGun(player);
+            player.Guns.Add(explosionGun);
         }
     }
 }

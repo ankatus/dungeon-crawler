@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DungeonCrawler.Rooms;
 
 namespace DungeonCrawler.GameObjects
 {
@@ -33,10 +34,10 @@ namespace DungeonCrawler.GameObjects
         }
 
 
-        public void Update(List<GameObject> gameObjects)
+        public virtual void Update(Room room)
         {
             Position += Velocity;
-            var collisions = CollisionDetection.GetCollisions(this, gameObjects);
+            var collisions = CollisionDetection.GetCollisions(this, room.AllObjects);
 
             foreach (var gameObject in collisions)
             {
