@@ -15,7 +15,9 @@ namespace DungeonCrawler
             Shoot,
             ChangeWeapon1,
             ChangeWeapon2,
-            ChangeWeapon3
+            ChangeWeapon3,
+            ChangeWeapon4,
+            ChangeWeapon5
         };
 
         public enum MouseButton
@@ -71,7 +73,9 @@ namespace DungeonCrawler
                 {InputName.Shoot, new Input(MouseButton.LeftButton)},
                 {InputName.ChangeWeapon1, new Input(Keys.D1)},
                 {InputName.ChangeWeapon2, new Input(Keys.D2)},
-                {InputName.ChangeWeapon3, new Input(Keys.D3)}
+                {InputName.ChangeWeapon3, new Input(Keys.D3)},
+                {InputName.ChangeWeapon4, new Input(Keys.D4)},
+                {InputName.ChangeWeapon5, new Input(Keys.D5)}
             };
         }
     }

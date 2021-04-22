@@ -22,7 +22,7 @@ namespace DungeonCrawler.Guns
         public float Speed => BaseSpeed * SpeedMultiplier;
         public float FireRate => BaseFirerate * FireRateMultiplier;
 
-        protected bool CanFire => (DateTime.Now - LastShot > TimeSpan.FromSeconds(1) / FireRate);
+        protected bool CanFire => (DateTime.Now - LastShot > TimeSpan.FromSeconds(1) / FireRate) && (this is DefaultGun || Ammo > 0);
 
         protected Gun(GameObject owner)
         {

@@ -21,14 +21,14 @@ namespace DungeonCrawler.GameObjects
         public Gun ActiveGun => Guns[_activeGunIndex];
         public float MaxHealth { get; }
         public float CurrentHealth { get; set; }
-        private readonly int _movingSpeed;
+        public int MovingSpeed { get; set; }
         private readonly GameMap _map;
         private int _activeGunIndex;
 
         public Player(GameMap map, int x, int y) : base(x, y, 10, 30)
         {
             _map = map;
-            _movingSpeed = 5;
+            MovingSpeed = 5;
             MaxHealth = 50;
             CurrentHealth = MaxHealth;
             var defaultGun = new DefaultGun(this);
@@ -55,6 +55,10 @@ namespace DungeonCrawler.GameObjects
             if (InputHandler.Inputs[InputHandler.InputName.ChangeWeapon2].IsActivated()) ChangeWeapon(1);
 
             if (InputHandler.Inputs[InputHandler.InputName.ChangeWeapon3].IsActivated()) ChangeWeapon(2);
+
+            if (InputHandler.Inputs[InputHandler.InputName.ChangeWeapon4].IsActivated()) ChangeWeapon(3);
+
+            if (InputHandler.Inputs[InputHandler.InputName.ChangeWeapon5].IsActivated()) ChangeWeapon(4);
         }
 
         public void AddGun(Gun gun)
@@ -86,16 +90,16 @@ namespace DungeonCrawler.GameObjects
             switch (direction)
             {
                 case Direction.Up:
-                    Velocity = -Vector2.UnitY * _movingSpeed;
+                    Velocity = -Vector2.UnitY;
                     break;
                 case Direction.Right:
-                    Velocity = Vector2.UnitX * _movingSpeed;
+                    Velocity = Vector2.UnitX;
                     break;
                 case Direction.Down:
-                    Velocity = Vector2.UnitY * _movingSpeed;
+                    Velocity = Vector2.UnitY;
                     break;
                 case Direction.Left:
-                    Velocity = -Vector2.UnitX * _movingSpeed;
+                    Velocity = -Vector2.UnitX;
                     break;
                 case Direction.None:
                     break;
@@ -103,12 +107,12 @@ namespace DungeonCrawler.GameObjects
                     throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
             }
 
-            Position += Velocity;
+            Position += Velocity * MovingSpeed;
 
             // If overlapping, move back until not overlapping
             while (CheckCollision())
             {
-                Position -= Velocity / _movingSpeed;
+                Position -= Velocity / MovingSpeed;
             }
         }
 

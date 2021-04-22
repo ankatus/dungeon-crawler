@@ -33,6 +33,9 @@ namespace DungeonCrawler
             //Items
             ShotgunItem,
             ExplosionGunItem,
+            MachineGunItem,
+            SniperGunItem,
+            MovementSpeedBonusItem,
             HealthPack,
             //Projectiles
             DefaultProjectile,
@@ -237,6 +240,15 @@ namespace DungeonCrawler
                     break;
                 case ExplosionGunItem:
                     textureId = TextureId.ExplosionGunItem;
+                    break;
+                case MachineGunItem:
+                    textureId = TextureId.MachineGunItem;
+                    break;
+                case SniperGunItem:
+                    textureId = TextureId.SniperGunItem;
+                    break;
+                case MovementSpeedBonusItem:
+                    textureId = TextureId.MovementSpeedBonusItem;
                     break;
                 default:
                     throw new Exception();

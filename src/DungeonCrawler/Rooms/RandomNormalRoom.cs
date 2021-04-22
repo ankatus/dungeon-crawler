@@ -26,10 +26,10 @@ namespace DungeonCrawler.Rooms
     public class RandomNormalRoom : Room
     {
         private List<Action> _createWallsFunctions;
-        private const int MIN_NUMBER_OF_ENEMIES = 1;
-        private const int MAX_NUMBER_OF_ENEMIES = 3;
-        private const int MIN_NUMBER_OF_ITEMS = 1;
-        private const int MAX_NUMBER_OF_ITEMS = 2;
+        private const int MIN_NUMBER_OF_ENEMIES = 2;
+        private const int MAX_NUMBER_OF_ENEMIES = 4;
+        private const int MIN_NUMBER_OF_ITEMS = 2;
+        private const int MAX_NUMBER_OF_ITEMS = 3;
 
         public RandomNormalRoom(Vector2 position, int width, int height, RoomLocation roomLocation) : base(position, width, height)
         {
@@ -81,7 +81,7 @@ namespace DungeonCrawler.Rooms
             // Select spawnable items
             var items = new List<Item>();
             var numberOfItems = RandomGenerator.Next(MIN_NUMBER_OF_ITEMS, MAX_NUMBER_OF_ITEMS + 1);
-            var itemTypes = new List<Type> { typeof(HealthPack), typeof(ShotgunItem), typeof(ExplosionGunItem) };
+            var itemTypes = new List<Type> { typeof(HealthPack), typeof(ShotgunItem), typeof(ExplosionGunItem), typeof(MachineGunItem), typeof(SniperGunItem), typeof(MovementSpeedBonusItem) };
             for (var i = numberOfItems; i > 0; i--)
             {
                 var itemTypeIndex = RandomGenerator.Next(0, itemTypes.Count);
@@ -99,6 +99,18 @@ namespace DungeonCrawler.Rooms
                 else if (itemType == typeof(ExplosionGunItem))
                 {
                     item = new ExplosionGunItem(Vector2.Zero);
+                }
+                else if (itemType == typeof(MachineGunItem))
+                {
+                    item = new MachineGunItem(Vector2.Zero);
+                }
+                else if (itemType == typeof(SniperGunItem))
+                {
+                    item = new SniperGunItem(Vector2.Zero);
+                }
+                else if (itemType == typeof(MovementSpeedBonusItem))
+                {
+                    item = new MovementSpeedBonusItem(Vector2.Zero);
                 }
                 else
                 {

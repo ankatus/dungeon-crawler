@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using DungeonCrawler.GameObjects;
+﻿using DungeonCrawler.GameObjects;
 using Microsoft.Xna.Framework;
+using System;
+using System.Collections.Generic;
 
 namespace DungeonCrawler.Guns
 {
-    public class ExplosionGun : Gun
+    public class SniperGun : Gun
     {
-        public ExplosionGun(GameObject owner) : base(owner)
+        public SniperGun(GameObject owner) : base(owner)
         {
-            BaseDamage = 1.0f;
-            BaseSpeed = 3.0f;
+            BaseDamage = 10.0f;
+            BaseSpeed = 20.0f;
             BaseFirerate = 1.0f;
-            MaxAmmo = 5;
+            MaxAmmo = 10;
         }
 
         public override List<Projectile> Shoot(Vector2 position, Vector2 direction)
@@ -20,7 +20,7 @@ namespace DungeonCrawler.Guns
             var projectiles = new List<Projectile>();
             if (!CanFire) return projectiles;
 
-            projectiles.Add(new ExplodingProjectile(position, direction, Damage, Speed, Owner));
+            projectiles.Add(new Projectile(position, direction, Damage, Speed, Owner));
             LastShot = DateTime.Now;
 
             Ammo -= 1;
