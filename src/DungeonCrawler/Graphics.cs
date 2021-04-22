@@ -248,17 +248,12 @@ namespace DungeonCrawler
                 case HealthPack:
                     textureId = TextureId.HealthPack;
                     break;
-                case ShotgunItem:
-                    textureId = TextureId.ShotgunItem;
-                    break;
-                case ExplosionGunItem:
-                    textureId = TextureId.ExplosionGunItem;
-                    break;
-                case MachineGunItem:
-                    textureId = TextureId.MachineGunItem;
-                    break;
-                case SniperGunItem:
-                    textureId = TextureId.SniperGunItem;
+                case GunItem gunItem:
+                    if (gunItem.GunType == typeof(Shotgun)) textureId = TextureId.ShotgunItem;
+                    else if (gunItem.GunType == typeof(ExplosionGun)) textureId = TextureId.ExplosionGunItem;
+                    else if (gunItem.GunType == typeof(MachineGun)) textureId = TextureId.MachineGunItem;
+                    else if (gunItem.GunType == typeof(SniperGun)) textureId = TextureId.SniperGunItem;
+                    else throw new Exception("Unknown gun");
                     break;
                 case MovementSpeedBonusItem:
                     textureId = TextureId.MovementSpeedBonusItem;

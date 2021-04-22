@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DungeonCrawler.Guns;
 
 namespace DungeonCrawler.Rooms
 {
@@ -81,7 +82,7 @@ namespace DungeonCrawler.Rooms
             // Select spawnable items
             var items = new List<Item>();
             var numberOfItems = RandomGenerator.Next(MIN_NUMBER_OF_ITEMS, MAX_NUMBER_OF_ITEMS + 1);
-            var itemTypes = new List<Type> { typeof(HealthPack), typeof(ShotgunItem), typeof(ExplosionGunItem), typeof(MachineGunItem), typeof(SniperGunItem), typeof(MovementSpeedBonusItem) };
+            var itemTypes = new List<Type> { typeof(HealthPack), typeof(MovementSpeedBonusItem), typeof(Shotgun), typeof(ExplosionGun), typeof(MachineGun), typeof(SniperGun), };
             for (var i = numberOfItems; i > 0; i--)
             {
                 var itemTypeIndex = RandomGenerator.Next(0, itemTypes.Count);
@@ -92,29 +93,17 @@ namespace DungeonCrawler.Rooms
                 {
                     item = new HealthPack(Vector2.Zero, 0.5f);
                 }
-                else if (itemType == typeof(ShotgunItem))
-                {
-                    item = new ShotgunItem(Vector2.Zero);
-                }
-                else if (itemType == typeof(ExplosionGunItem))
-                {
-                    item = new ExplosionGunItem(Vector2.Zero);
-                }
-                else if (itemType == typeof(MachineGunItem))
-                {
-                    item = new MachineGunItem(Vector2.Zero);
-                }
-                else if (itemType == typeof(SniperGunItem))
-                {
-                    item = new SniperGunItem(Vector2.Zero);
-                }
                 else if (itemType == typeof(MovementSpeedBonusItem))
                 {
                     item = new MovementSpeedBonusItem(Vector2.Zero);
                 }
+                else if (itemType.IsSubclassOf(typeof(Gun)))
+                {
+                    item = new GunItem(itemType, Vector2.Zero); ;
+                }
                 else
                 {
-                    throw new Exception("Unknown item type");
+                    throw new Exception("Unknown item type: " + itemType.ToString());
                 }
 
                 items.Add(item);

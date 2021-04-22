@@ -111,34 +111,29 @@ namespace DungeonCrawler.Rooms
 
         protected void SpawnItemsOnRandomSpawnPoints(List<Item> items)
         {
-            var ItemSpawnPoints = new List<(Vector2, bool)>();
-
-            // Copy spawn points and initialize them as available
-            foreach (var spawnPoint in SpawnPoints)
+            var availableSpawnPointIndexes = new List<int>();
+            for (var i = 0; i < SpawnPoints.Count; i++)
             {
-                ItemSpawnPoints.Add((spawnPoint, true));
+                availableSpawnPointIndexes.Add(i);
             }
 
             foreach (var item in items)
             {
-                // Find only unused spawnpoints (Item2 is boolean indicating if spawn point is available)
-                var possibleSpawnPoints = ItemSpawnPoints.FindAll(spawnPointInfo => spawnPointInfo.Item2 == true);
-
-                if (possibleSpawnPoints.Count == 0)
+                if (availableSpawnPointIndexes.Count == 0)
                 {
-                    //All spawn points are used
-                    throw new Exception("Too few spawnpoints for items");
+                    // All spawn points are used
+                    throw new Exception("No available spawnpoints");
                 }
 
                 // Get random spawnpoint
-                var randomIndex = RandomGenerator.Next(0, possibleSpawnPoints.Count);
-                var (position, _) = possibleSpawnPoints[randomIndex];
+                var randomIndex = RandomGenerator.Next(0, availableSpawnPointIndexes.Count);
+                var position = SpawnPoints[availableSpawnPointIndexes[randomIndex]];
 
                 // Set item position to available spawnpoint
                 item.Position = position;
 
-                // Indicate that spawnpoint is used
-                ItemSpawnPoints[randomIndex] = (position, false);
+                // Remove used spawnpoint from available spawnpoints
+                availableSpawnPointIndexes.RemoveAt(randomIndex);
 
                 // Add item to room
                 Items.Add(item);
@@ -147,34 +142,29 @@ namespace DungeonCrawler.Rooms
 
         protected void SpawnEnemiesOnRandomSpawnPoints(List<Enemy> enemies)
         {
-            var enemySpawnPoints = new List<(Vector2, bool)>();
-
-            // Copy spawn points and initialize them as available
-            foreach (var spawnPoint in SpawnPoints)
+            var availableSpawnPointIndexes = new List<int>();
+            for (var i = 0; i < SpawnPoints.Count; i++)
             {
-                enemySpawnPoints.Add((spawnPoint, true));
+                availableSpawnPointIndexes.Add(i);
             }
 
             foreach (var enemy in enemies)
             {
-                // Find only unused spawnpoints (Item2 is boolean indicating if spawn point is available)
-                var possibleSpawnPoints = enemySpawnPoints.FindAll(spawnPointInfo => spawnPointInfo.Item2 == true);
-
-                if (possibleSpawnPoints.Count == 0)
+                if (availableSpawnPointIndexes.Count == 0)
                 {
-                    //All spawn points are used
-                    throw new Exception("Too few spawnpoints for enemies");
+                    // All spawn points are used
+                    throw new Exception("No available spawnpoints");
                 }
 
                 // Get random spawnpoint
-                var randomIndex = RandomGenerator.Next(0, possibleSpawnPoints.Count);
-                var (position, _) = possibleSpawnPoints[randomIndex];
+                var randomIndex = RandomGenerator.Next(0, availableSpawnPointIndexes.Count);
+                var position = SpawnPoints[availableSpawnPointIndexes[randomIndex]];
 
                 // Set enemy position to available spawnpoint
                 enemy.Position = position;
 
-                // Indicate that spawnpoint is used
-                enemySpawnPoints[randomIndex] = (position, false);
+                // Remove used spawnpoint from available spawnpoints
+                availableSpawnPointIndexes.RemoveAt(randomIndex);
 
                 // Add enemy to room
                 Enemies.Add(enemy);
