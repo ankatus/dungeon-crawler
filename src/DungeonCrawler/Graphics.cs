@@ -9,6 +9,7 @@ using DungeonCrawler.UI.UIObjects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using DungeonCrawler.Guns;
 
 namespace DungeonCrawler
 {
@@ -39,6 +40,7 @@ namespace DungeonCrawler
             HealthPack,
             //Projectiles
             DefaultProjectile,
+            ExplosionGunProjectile,
             EnemyProjectile
         };
 
@@ -218,7 +220,18 @@ namespace DungeonCrawler
                     textureId = TextureId.Player;
                     break;
                 case Projectile projectile:
-                    textureId = projectile.Source is Enemy ? TextureId.EnemyProjectile : TextureId.DefaultProjectile;
+                    if (projectile.Source is Enemy)
+                    {
+                        textureId = TextureId.EnemyProjectile;
+                    }
+                    else if (projectile.SourceGun is ExplosionGun)
+                    {
+                        textureId = TextureId.ExplosionGunProjectile;
+                    }
+                    else
+                    {
+                        textureId = TextureId.DefaultProjectile;
+                    }
                     break;
                 case Wall:
                     textureId = TextureId.Wall;

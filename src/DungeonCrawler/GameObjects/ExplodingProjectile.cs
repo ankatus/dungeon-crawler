@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DungeonCrawler.Guns;
 using DungeonCrawler.Rooms;
 using Microsoft.Xna.Framework;
 
@@ -11,11 +12,7 @@ namespace DungeonCrawler.GameObjects
         private const float PROJECTILE_DAMAGE = 5.0f;
         private const float PROJECTILE_SPEED = 5.0f;
 
-        public ExplodingProjectile(int x, int y, Vector2 travelVector, float speed, GameObject source) : base(x, y, travelVector, speed, source)
-        {
-        }
-
-        public ExplodingProjectile(Vector2 position, Vector2 travelVector, float damage, float speed, GameObject source) : base(position, travelVector, damage, speed, source)
+        public ExplodingProjectile(Vector2 position, Vector2 travelVector, float damage, float speed, GameObject source, Gun sourceGun) : base(position, travelVector, damage, speed, source, sourceGun)
         {
         }
 
