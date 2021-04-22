@@ -201,6 +201,7 @@ namespace DungeonCrawler.UI
             var height = (float) obj.Height / Height;
 
             var text = "";
+            var textColor = TextColor.Red;
             if (obj is Button button)
             {
                 text = button.Text;
@@ -208,6 +209,7 @@ namespace DungeonCrawler.UI
             else if (obj is TextBlock textBlock)
             {
                 text = textBlock.Text;
+                textColor = textBlock.Color;
             }
 
             var originType = obj.GetType();
@@ -219,6 +221,7 @@ namespace DungeonCrawler.UI
                 Height = height,
                 Rotation = obj.Rotation,
                 Text = text,
+                TextColor = textColor,
                 OriginType = originType,
             };
         }

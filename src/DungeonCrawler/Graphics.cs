@@ -323,7 +323,14 @@ namespace DungeonCrawler
             var onScreenPos = new Vector2(obj.Position.X * WindowWidth, obj.Position.Y * WindowHeight);
             var textLocation = onScreenPos - new Vector2(textSize.X / 2, textSize.Y / 2);
 
-            _spriteBatch.DrawString(_testFont, text, textLocation, Color.Red, 0, new Vector2(0, 0), 1,
+            var color = obj.TextColor switch
+            {
+                TextColor.Red => Color.Red,
+                TextColor.Blue => Color.Blue,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            _spriteBatch.DrawString(_testFont, text, textLocation, color, 0, new Vector2(0, 0), 1,
                 SpriteEffects.None, UI_TEXT_LAYER);
         }
 

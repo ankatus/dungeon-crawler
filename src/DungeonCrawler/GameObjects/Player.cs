@@ -6,7 +6,14 @@ using DungeonCrawler.Maps;
 
 namespace DungeonCrawler.GameObjects
 {
-    public enum Direction { None, Up, Right, Down, Left };
+    public enum Direction
+    {
+        None,
+        Up,
+        Right,
+        Down,
+        Left
+    };
 
     public class Player : GameObject
     {
@@ -52,32 +59,17 @@ namespace DungeonCrawler.GameObjects
 
         public void AddGun(Gun gun)
         {
-            if (gun is Shotgun shotgun)
+            foreach (var existingGun in Guns)
             {
-                // Slot 2
-                if (Guns.Count < 2)
+                if (gun.GetType() == existingGun.GetType())
                 {
-                    shotgun.FillAmmo();
-                    Guns.Add(shotgun);
-                }
-                else
-                {
-                    Guns[1].FillAmmo();
+                    existingGun.FillAmmo();
+                    return;
                 }
             }
-            else if (gun is ExplosionGun explosionGun)
-            {
-                // Slot 3
-                if (Guns.Count < 3)
-                {
-                    explosionGun.FillAmmo();
-                    Guns.Add(explosionGun);
-                }
-                else
-                {
-                    Guns[2].FillAmmo();
-                }
-            }
+
+            gun.FillAmmo();
+            Guns.Add(gun);
         }
 
         private void ChangeWeapon(int gunIndex)

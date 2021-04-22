@@ -23,6 +23,7 @@ namespace DungeonCrawler.UI.UIObjects
             _hpIndicator.Text = player.CurrentHealth.ToString(CultureInfo.InvariantCulture);
 
             // Gun indicators
+            // Add indicators if necessary
             if (_gunIndicators.Count != player.Guns.Count)
             {
                 var startPos = _gunIndicatorsStart;
@@ -37,6 +38,20 @@ namespace DungeonCrawler.UI.UIObjects
                     _gunIndicators.Add(indicator);
                 }
             }
+
+            // Change color of indicator corresponding to equipped gun
+            for (var i = 0; i < _gunIndicators.Count; i++)
+            {
+                if (player.Guns[i].GetType() == player.ActiveGun.GetType())
+                {
+                    _gunIndicators[i].Color = TextColor.Blue;
+                }
+                else
+                {
+                    _gunIndicators[i].Color = TextColor.Red;
+                }
+            }
+            
 
             // Ammo indicator
             var current = player.ActiveGun.Ammo;
