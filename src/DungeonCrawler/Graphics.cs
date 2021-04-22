@@ -16,6 +16,7 @@ namespace DungeonCrawler
     {
         public enum TextureId
         {
+            Menu,
             Transparent,
             Default,
             Player,
@@ -34,7 +35,8 @@ namespace DungeonCrawler
             ExplosionGunItem,
             HealthPack,
             //Projectiles
-            DefaultProjectile
+            DefaultProjectile,
+            EnemyProjectile
         };
 
         public int WindowWidth { get; private set; }
@@ -178,20 +180,6 @@ namespace DungeonCrawler
                     HEALTH_BAR_LAYER
                 );
             }
-            else if (gameObject is Player player)
-            {
-                _spriteBatch.Draw(
-                    _textures[TextureId.HealthBar],
-                    drawable.Position,
-                    new Rectangle(0, 0, (int) (30 * (player.CurrentHealth / player.MaxHealth)), 5),
-                    Color.White,
-                    0,
-                    new Vector2(0, 0),
-                    1,
-                    SpriteEffects.None,
-                    HEALTH_BAR_LAYER
-                );
-            }
         }
 
         private void DrawUiDrawable(UiDrawable uiDrawable)
@@ -226,8 +214,8 @@ namespace DungeonCrawler
                 case Player:
                     textureId = TextureId.Player;
                     break;
-                case Projectile:
-                    textureId = TextureId.DefaultProjectile;
+                case Projectile projectile:
+                    textureId = projectile.Source is Enemy ? TextureId.EnemyProjectile : TextureId.DefaultProjectile;
                     break;
                 case Wall:
                     textureId = TextureId.Wall;
@@ -295,8 +283,8 @@ namespace DungeonCrawler
         {
             var textureId = TextureId.Default;
             if (uiDrawable.OriginType == typeof(Button)) textureId = TextureId.ButtonBackground;
-            if (uiDrawable.OriginType == typeof(Menu)) textureId = TextureId.Default;
-            if (uiDrawable.OriginType == typeof(TextBlock)) textureId = TextureId.Default;
+            if (uiDrawable.OriginType == typeof(Menu)) textureId = TextureId.Menu;
+            if (uiDrawable.OriginType == typeof(TextBlock)) textureId = TextureId.Transparent;
             if (uiDrawable.OriginType == typeof(StatusBar)) textureId = TextureId.Transparent;
 
             var texture = _textures[textureId];

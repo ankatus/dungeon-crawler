@@ -147,18 +147,18 @@ namespace DungeonCrawler.Rooms
 
         protected void SpawnEnemiesOnRandomSpawnPoints(List<Enemy> enemies)
         {
-            var EnemySpawnPoints = new List<(Vector2, bool)>();
+            var enemySpawnPoints = new List<(Vector2, bool)>();
 
             // Copy spawn points and initialize them as available
             foreach (var spawnPoint in SpawnPoints)
             {
-                EnemySpawnPoints.Add((spawnPoint, true));
+                enemySpawnPoints.Add((spawnPoint, true));
             }
 
             foreach (var enemy in enemies)
             {
                 // Find only unused spawnpoints (Item2 is boolean indicating if spawn point is available)
-                var possibleSpawnPoints = EnemySpawnPoints.FindAll(spawnPointInfo => spawnPointInfo.Item2 == true);
+                var possibleSpawnPoints = enemySpawnPoints.FindAll(spawnPointInfo => spawnPointInfo.Item2 == true);
 
                 if (possibleSpawnPoints.Count == 0)
                 {
@@ -174,7 +174,7 @@ namespace DungeonCrawler.Rooms
                 enemy.Position = position;
 
                 // Indicate that spawnpoint is used
-                EnemySpawnPoints[randomIndex] = (position, false);
+                enemySpawnPoints[randomIndex] = (position, false);
 
                 // Add enemy to room
                 Enemies.Add(enemy);
