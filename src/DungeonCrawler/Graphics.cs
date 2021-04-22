@@ -139,7 +139,7 @@ namespace DungeonCrawler
                 unitsPerPixel = (float) WindowWidth / _game.Camera.Width;
             }
 
-            _game.GraphicsDevice.Clear(Color.CornflowerBlue);
+            _game.GraphicsDevice.Clear(Color.DarkGray);
 
             _spriteBatch.Begin(sortMode: SpriteSortMode.FrontToBack, samplerState: SamplerState.LinearWrap);
 
