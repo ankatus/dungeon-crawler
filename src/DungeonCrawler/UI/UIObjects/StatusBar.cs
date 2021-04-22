@@ -10,6 +10,7 @@ namespace DungeonCrawler.UI.UIObjects
         private Vector2 _gunIndicatorsStart;
         private readonly List<TextBlock> _gunIndicators;
         private TextBlock _hpIndicator;
+        private TextBlock _ammoIndicator;
 
         public StatusBar(Vector2 position, int width, int height) : base(position, width, height)
         {
@@ -22,19 +23,25 @@ namespace DungeonCrawler.UI.UIObjects
             _hpIndicator.Text = player.CurrentHealth.ToString(CultureInfo.InvariantCulture);
 
             // Gun indicators
-            if (_gunIndicators.Count == player.Guns.Count) return;
-
-            var startPos = _gunIndicatorsStart;
-            startPos.X += _gunIndicators.Count * 15;
-
-            for (var index = _gunIndicators.Count; index < player.Guns.Count; index++)
+            if (_gunIndicators.Count != player.Guns.Count)
             {
-                var position = startPos;
-                position.X += index * 15;
-                var indicator = new TextBlock((index + 1).ToString(), position, 0, 0);
-                Children.Add(indicator);
-                _gunIndicators.Add(indicator);
+                var startPos = _gunIndicatorsStart;
+                startPos.X += _gunIndicators.Count * 15;
+
+                for (var index = _gunIndicators.Count; index < player.Guns.Count; index++)
+                {
+                    var position = startPos;
+                    position.X += index * 15;
+                    var indicator = new TextBlock((index + 1).ToString(), position, 0, 0);
+                    Children.Add(indicator);
+                    _gunIndicators.Add(indicator);
+                }
             }
+
+            // Ammo indicator
+            var current = player.ActiveGun.Ammo;
+            var max = player.ActiveGun.MaxAmmo;
+            _ammoIndicator.Text = $"{current}/{max}";
         }
 
         private void Build()
@@ -49,9 +56,9 @@ namespace DungeonCrawler.UI.UIObjects
             // Health indicator
             position = hpLabel.Position;
             position.X += 40;
-            var bar = new TextBlock("100", position, 0, 0);
-            Children.Add(bar);
-            _hpIndicator = bar;
+            var hp = new TextBlock("100", position, 0, 0);
+            Children.Add(hp);
+            _hpIndicator = hp;
 
             // Guns label
             position = hpLabel.Position;
@@ -63,6 +70,19 @@ namespace DungeonCrawler.UI.UIObjects
             position = gunsLabel.Position;
             position.X += 30;
             _gunIndicatorsStart = position;
+
+            // Ammo label
+            position = gunsLabel.Position;
+            position.Y += 30;
+            var ammoLabel = new TextBlock("Ammo:", position, 0, 0);
+            Children.Add(ammoLabel);
+
+            // Ammo indicator
+            position = ammoLabel.Position;
+            position.X += 40;
+            var ammo = new TextBlock("", position, 0, 0);
+            Children.Add(ammo);
+            _ammoIndicator = ammo;
         }
     }
 }

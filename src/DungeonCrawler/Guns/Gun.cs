@@ -9,6 +9,9 @@ namespace DungeonCrawler.Guns
     {
         protected GameObject Owner { get; }
         protected DateTime LastShot { get; set; }
+        
+        public int MaxAmmo { get; protected set; }
+        public int Ammo { get; protected set; }
         public float BaseDamage { get; protected set; }
         public float BaseSpeed { get; protected set; }
         public float BaseFirerate { get; protected set; }
@@ -30,8 +33,14 @@ namespace DungeonCrawler.Guns
             DamageMultiplier = 1.0f;
             SpeedMultiplier = 1.0f;
             FireRateMultiplier = 1.0f;
+            MaxAmmo = 0;
         }
 
         public abstract List<Projectile> Shoot(Vector2 position, Vector2 direction);
+
+        public void FillAmmo()
+        {
+            Ammo = MaxAmmo;
+        }
     }
 }

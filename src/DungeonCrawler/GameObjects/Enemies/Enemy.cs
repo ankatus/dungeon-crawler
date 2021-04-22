@@ -133,6 +133,9 @@ namespace DungeonCrawler.GameObjects.Enemies
         {
             var projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
 
+            // Just fill ammo every time so that gun does not run out :)
+            ActiveGun.FillAmmo();
+
             if (IsProjectileGoingToHitPlayer(gameObjects)) _room.Projectiles.AddRange(ActiveGun.Shoot(Position, projectileTravelVector));
         }
 

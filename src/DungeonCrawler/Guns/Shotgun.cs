@@ -2,9 +2,6 @@
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DungeonCrawler.Guns
 {
@@ -14,7 +11,8 @@ namespace DungeonCrawler.Guns
         {
             BaseDamage = 1.0f;
             BaseSpeed = 5.0f;
-            BaseFirerate = 3.0f;
+            BaseFirerate = 2.0f;
+            MaxAmmo = 20;
         }
 
         public override List<Projectile> Shoot(Vector2 position, Vector2 direction)
@@ -28,6 +26,8 @@ namespace DungeonCrawler.Guns
             projectiles.Add(new Projectile(position, CollisionDetection.RotateVector(direction, -Math.PI / 16), Damage, Speed, Owner));
             projectiles.Add(new Projectile(position, CollisionDetection.RotateVector(direction, -Math.PI / 8), Damage, Speed, Owner));
             LastShot = DateTime.Now;
+
+            Ammo -= 1;
 
             return projectiles;
         }

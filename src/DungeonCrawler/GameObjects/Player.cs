@@ -50,6 +50,36 @@ namespace DungeonCrawler.GameObjects
             if (InputHandler.Inputs[InputHandler.InputName.ChangeWeapon3].IsActivated()) ChangeWeapon(2);
         }
 
+        public void AddGun(Gun gun)
+        {
+            if (gun is Shotgun shotgun)
+            {
+                // Slot 2
+                if (Guns.Count < 2)
+                {
+                    shotgun.FillAmmo();
+                    Guns.Add(shotgun);
+                }
+                else
+                {
+                    Guns[1].FillAmmo();
+                }
+            }
+            else if (gun is ExplosionGun explosionGun)
+            {
+                // Slot 3
+                if (Guns.Count < 3)
+                {
+                    explosionGun.FillAmmo();
+                    Guns.Add(explosionGun);
+                }
+                else
+                {
+                    Guns[2].FillAmmo();
+                }
+            }
+        }
+
         private void ChangeWeapon(int gunIndex)
         {
             if (gunIndex < Guns.Count)

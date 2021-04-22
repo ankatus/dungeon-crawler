@@ -17,7 +17,7 @@ namespace DungeonCrawler.GameObjects.Items
         protected override void ItemActivated(Player player)
         {
             var explosionGun = new ExplosionGun(player);
-            player.Guns.Add(explosionGun);
+            player.AddGun(explosionGun);
         }
     }
 }
