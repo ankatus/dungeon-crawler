@@ -10,7 +10,9 @@ namespace DungeonCrawler.GameObjects.Enemies
 {
     public class DefaultEnemy : Enemy
     {
-        public DefaultEnemy(Room room, Vector2 position, int width, int height) : base(room, position, width, height)
+        private const int WIDTH = 30;
+        private const int HEIGHT = 30;
+        public DefaultEnemy(Room room, Vector2 position) : base(room, position, WIDTH, HEIGHT)
         {
 
         }

@@ -11,7 +11,9 @@ namespace DungeonCrawler.GameObjects.Enemies
 {
     public class StrongEnemy : Enemy
     {
-        public StrongEnemy(Room room, Vector2 position) : base(room, position, 30, 70)
+        private const int WIDTH = 30;
+        private const int HEIGHT = 60;
+        public StrongEnemy(Room room, Vector2 position) : base(room, position, WIDTH, HEIGHT)
         {
             MaxHealth = 60;
             CurrentHealth = MaxHealth;

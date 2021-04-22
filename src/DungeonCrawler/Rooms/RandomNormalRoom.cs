@@ -63,7 +63,7 @@ namespace DungeonCrawler.Rooms
 
                 if (enemyType == typeof(DefaultEnemy))
                 {
-                    enemy = new DefaultEnemy(this, new Vector2(0, 0), 20, 60);
+                    enemy = new DefaultEnemy(this, new Vector2(0, 0));
                 }
                 else if (enemyType == typeof(StrongEnemy))
                 {
