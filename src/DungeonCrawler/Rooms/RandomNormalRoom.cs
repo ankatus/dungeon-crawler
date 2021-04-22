@@ -26,6 +26,10 @@ namespace DungeonCrawler.Rooms
     public class RandomNormalRoom : Room
     {
         private List<Action> _createWallsFunctions;
+        private const int MIN_NUMBER_OF_ENEMIES = 1;
+        private const int MAX_NUMBER_OF_ENEMIES = 3;
+        private const int MIN_NUMBER_OF_ITEMS = 1;
+        private const int MAX_NUMBER_OF_ITEMS = 2;
 
         public RandomNormalRoom(Vector2 position, int width, int height, RoomLocation roomLocation) : base(position, width, height)
         {
@@ -45,7 +49,8 @@ namespace DungeonCrawler.Rooms
             RoomGraph.Build();
 
             // Spawn Enemies
-            var numberOfEnemies = RandomGenerator.Next(1, 4);
+            var enemies = new List<Enemy>();
+            var numberOfEnemies = RandomGenerator.Next(MIN_NUMBER_OF_ENEMIES, MAX_NUMBER_OF_ENEMIES + 1);
             var enemyTypes = new List<Type> { typeof(DefaultEnemy), typeof(StrongEnemy) };
             for (var i = numberOfEnemies; i > 0; i--)
             {
@@ -66,13 +71,42 @@ namespace DungeonCrawler.Rooms
                     throw new Exception("Unknown enemy type");
                 }
 
-                SpawnEnemyOnRandomSpawnPoint(enemy);
+                enemies.Add(enemy);
             }
 
-            // Spawn items
-            Items.Add(new HealthPack(Position + new Vector2(300, 300), 0.5f));
-            Items.Add(new ShotgunItem(Position + new Vector2(400, 400)));
-            Items.Add(new ExplosionGunItem(Position + new Vector2(500, 500)));
+            SpawnEnemiesOnRandomSpawnPoints(enemies);
+
+            // Select spawnable items
+            var items = new List<Item>();
+            var numberOfItems = RandomGenerator.Next(MIN_NUMBER_OF_ITEMS, MAX_NUMBER_OF_ITEMS + 1);
+            var itemTypes = new List<Type> { typeof(HealthPack), typeof(ShotgunItem), typeof(ExplosionGunItem) };
+            for (var i = numberOfItems; i > 0; i--)
+            {
+                var itemTypeIndex = RandomGenerator.Next(0, itemTypes.Count);
+                var itemType = itemTypes[itemTypeIndex];
+                Item item;
+
+                if (itemType == typeof(HealthPack))
+                {
+                    item = new HealthPack(Vector2.Zero, 0.5f);
+                }
+                else if (itemType == typeof(ShotgunItem))
+                {
+                    item = new ShotgunItem(Vector2.Zero);
+                }
+                else if (itemType == typeof(ExplosionGunItem))
+                {
+                    item = new ExplosionGunItem(Vector2.Zero);
+                }
+                else
+                {
+                    throw new Exception("Unknown item type");
+                }
+
+                items.Add(item);
+            }
+
+            SpawnableItems.AddRange(items);
         }
 
         private void CreateWalls1()
@@ -122,12 +156,12 @@ namespace DungeonCrawler.Rooms
             Walls.Add(wall);
 
             // Spawn points
-            EnemySpawnPoints.Add((new Vector2(Width / 2 - 100, Height / 2) + Position, true));
-            EnemySpawnPoints.Add((new Vector2(Width / 2, Height / 2) + Position, true));
-            EnemySpawnPoints.Add((new Vector2(Width / 2 + 100, Height / 2) + Position, true));
-            EnemySpawnPoints.Add((new Vector2(Width / 2 - 100, Height / 2 + 100) + Position, true));
-            EnemySpawnPoints.Add((new Vector2(Width / 2, Height / 2 + 100) + Position, true));
-            EnemySpawnPoints.Add((new Vector2(Width / 2 + 100, Height / 2 + 100) + Position, true));
+            SpawnPoints.Add(new Vector2(Width / 2 - 100, Height / 2) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2, Height / 2) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2 + 100, Height / 2) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2 - 100, Height / 2 + 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2, Height / 2 + 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2 + 100, Height / 2 + 100) + Position);
         }
 
         private void CreateWalls2()
@@ -218,10 +252,10 @@ namespace DungeonCrawler.Rooms
             Walls.Add(wall);
 
             // Spawn points
-            EnemySpawnPoints.Add((new Vector2(Width / 2 - 100, Height / 2 - 100) + Position, true));
-            EnemySpawnPoints.Add((new Vector2(Width / 2 + 100, Height / 2 + 100) + Position, true));
-            EnemySpawnPoints.Add((new Vector2(Width / 2 + 100, Height / 2 - 100) + Position, true));
-            EnemySpawnPoints.Add((new Vector2(Width / 2 - 100, Height / 2 + 100) + Position, true));
+            SpawnPoints.Add(new Vector2(Width / 2 - 100, Height / 2 - 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2 + 100, Height / 2 + 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2 + 100, Height / 2 - 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2 - 100, Height / 2 + 100) + Position);
         }
     }
 }

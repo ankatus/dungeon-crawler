@@ -16,7 +16,7 @@ namespace DungeonCrawler.Rooms
 
         private int _enemyUpdateIndex;
 
-        protected List<(Vector2, bool)> EnemySpawnPoints { get; set; }
+        protected List<Vector2> SpawnPoints { get; set; }
         protected Random RandomGenerator { get; private set; }
 
         public readonly Vector2 Position;
@@ -30,6 +30,8 @@ namespace DungeonCrawler.Rooms
         public List<Enemy> Enemies { get; set; }
         public List<Projectile> Projectiles { get; }
         public List<Item> Items { get; }
+        // SpawnableItems list contains items that will be spawned into room after clearing
+        protected List<Item> SpawnableItems;
         public RoomGraph RoomGraph { get; }
 
         public List<GameObject> AllObjects => new List<GameObject>()
@@ -51,8 +53,9 @@ namespace DungeonCrawler.Rooms
             Enemies = new List<Enemy>();
             Projectiles = new List<Projectile>();
             Items = new List<Item>();
+            SpawnableItems = new List<Item>();
             RoomGraph = new RoomGraph(this, new DefaultEnemy(this, Vector2.Zero, 0, 0));
-            EnemySpawnPoints = new List<(Vector2, bool)>();
+            SpawnPoints = new List<Vector2>();
             RandomGenerator = new Random();
         }
 
@@ -87,9 +90,14 @@ namespace DungeonCrawler.Rooms
             PruneInActiveObjects();
 
             // Room is cleared when all enemies are defeated
-            if (Enemies.Any() == false)
+            if (Cleared == false && Enemies.Any() == false)
             {
                 Cleared = true;
+
+                // Spawn items
+                SpawnItemsOnRandomSpawnPoints(SpawnableItems);
+
+                // Open doors
                 Doors.ForEach(door => door.Open = true);
             }
         }
@@ -101,12 +109,56 @@ namespace DungeonCrawler.Rooms
             Items.RemoveAll(gameObject => gameObject.State == GameObjectState.Inactive);
         }
 
-        protected void SpawnEnemyOnRandomSpawnPoint(Enemy enemy)
+        protected void SpawnItemsOnRandomSpawnPoints(List<Item> items)
         {
-            if (EnemySpawnPoints.Count > 0)
+            var ItemSpawnPoints = new List<(Vector2, bool)>();
+
+            // Copy spawn points and initialize them as available
+            foreach (var spawnPoint in SpawnPoints)
             {
-                //Find only unused spawnpoints (Item2 is boolean indicating if spawn point is available)
-                var possibleSpawnPoints = EnemySpawnPoints.FindAll(spawnPoint => spawnPoint.Item2 == true);
+                ItemSpawnPoints.Add((spawnPoint, true));
+            }
+
+            foreach (var item in items)
+            {
+                // Find only unused spawnpoints (Item2 is boolean indicating if spawn point is available)
+                var possibleSpawnPoints = ItemSpawnPoints.FindAll(spawnPointInfo => spawnPointInfo.Item2 == true);
+
+                if (possibleSpawnPoints.Count == 0)
+                {
+                    //All spawn points are used
+                    throw new Exception("Too few spawnpoints for items");
+                }
+
+                // Get random spawnpoint
+                var randomIndex = RandomGenerator.Next(0, possibleSpawnPoints.Count);
+                var (position, _) = possibleSpawnPoints[randomIndex];
+
+                // Set item position to available spawnpoint
+                item.Position = position;
+
+                // Indicate that spawnpoint is used
+                ItemSpawnPoints[randomIndex] = (position, false);
+
+                // Add item to room
+                Items.Add(item);
+            }
+        }
+
+        protected void SpawnEnemiesOnRandomSpawnPoints(List<Enemy> enemies)
+        {
+            var EnemySpawnPoints = new List<(Vector2, bool)>();
+
+            // Copy spawn points and initialize them as available
+            foreach (var spawnPoint in SpawnPoints)
+            {
+                EnemySpawnPoints.Add((spawnPoint, true));
+            }
+
+            foreach (var enemy in enemies)
+            {
+                // Find only unused spawnpoints (Item2 is boolean indicating if spawn point is available)
+                var possibleSpawnPoints = EnemySpawnPoints.FindAll(spawnPointInfo => spawnPointInfo.Item2 == true);
 
                 if (possibleSpawnPoints.Count == 0)
                 {
@@ -114,17 +166,17 @@ namespace DungeonCrawler.Rooms
                     throw new Exception("Too few spawnpoints for enemies");
                 }
 
-                //Get random spawnpoint
+                // Get random spawnpoint
                 var randomIndex = RandomGenerator.Next(0, possibleSpawnPoints.Count);
                 var (position, _) = possibleSpawnPoints[randomIndex];
 
-                //Set enemy position to available spawnpoint
+                // Set enemy position to available spawnpoint
                 enemy.Position = position;
 
-                //Indicate that spawnpoint is used
+                // Indicate that spawnpoint is used
                 EnemySpawnPoints[randomIndex] = (position, false);
 
-                //Add enemy to room
+                // Add enemy to room
                 Enemies.Add(enemy);
             }
         }
