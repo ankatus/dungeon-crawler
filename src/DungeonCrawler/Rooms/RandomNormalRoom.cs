@@ -34,8 +34,10 @@ namespace DungeonCrawler.Rooms
         public RandomNormalRoom(Vector2 position, int width, int height, RoomLocation roomLocation) : base(position, width, height)
         {
             _createWallsFunctions = new List<Action>();
-            _createWallsFunctions.Add(CreateWalls1);
-            _createWallsFunctions.Add(CreateWalls2);
+            _createWallsFunctions.Add(CreateLayout1);
+            _createWallsFunctions.Add(CreateLayout2);
+            _createWallsFunctions.Add(CreateLayout3);
+            _createWallsFunctions.Add(CreateLayout4);
 
             // Surrounding walls
             CreateSurroundingWalls(roomLocation);
@@ -109,7 +111,7 @@ namespace DungeonCrawler.Rooms
             SpawnableItems.AddRange(items);
         }
 
-        private void CreateWalls1()
+        private void CreateLayout1()
         {
             /* |-------------------------------------------------|
              * |        ______________________________           |
@@ -164,7 +166,7 @@ namespace DungeonCrawler.Rooms
             SpawnPoints.Add(new Vector2(Width / 2 + 100, Height / 2 + 100) + Position);
         }
 
-        private void CreateWalls2()
+        private void CreateLayout2()
         {
             /* |-------------------------------------------------|
              * |        _____________    _____________           |
@@ -256,6 +258,128 @@ namespace DungeonCrawler.Rooms
             SpawnPoints.Add(new Vector2(Width / 2 + 100, Height / 2 + 100) + Position);
             SpawnPoints.Add(new Vector2(Width / 2 + 100, Height / 2 - 100) + Position);
             SpawnPoints.Add(new Vector2(Width / 2 - 100, Height / 2 + 100) + Position);
+        }
+
+        private void CreateLayout3()
+        {
+            /* |-------------------------------------------------|
+             * |        _____________    _____________           |
+             * |                                                 |
+             * |                                                 |
+             * |          |                      |               |
+             * |          |       x    x    x    |               |
+             * |          |                      |               |
+             * |          |                      |               |
+             * |          |       x    x    x    |               |
+             * |                                                 |
+             * |        ____________    ______________           |
+             * |                                                 |
+             * |-------------------------------------------------|
+             */
+
+            // Top left part
+            var wall = Wall.FromCoordinates(
+                (new Vector2(200, 100) + Position).ToPoint(),
+                (new Vector2((Width / 2) - 100, 100) + Position).ToPoint(),
+                WallThickness);
+            Walls.Add(wall);
+
+            // Top right part
+            wall = Wall.FromCoordinates(
+                (new Vector2((Width / 2) + 100, 100) + Position).ToPoint(),
+                (new Vector2(Width - 200, 100) + Position).ToPoint(),
+                WallThickness);
+            Walls.Add(wall);
+
+            // Bottom left part
+            wall = Wall.FromCoordinates(
+                (new Vector2(200, Height - 100) + Position).ToPoint(),
+                (new Vector2((Width / 2) - 100, Height - 100) + Position).ToPoint(),
+                WallThickness);
+            Walls.Add(wall);
+
+            // Bottom right part
+            wall = Wall.FromCoordinates(
+                (new Vector2((Width / 2) + 100, Height - 100) + Position).ToPoint(),
+                (new Vector2(Width - 200, Height - 100) + Position).ToPoint(),
+                WallThickness);
+            Walls.Add(wall);
+
+            // Left middle wall
+            wall = Wall.FromCoordinates(
+                (new Vector2(Width / 4, Height / 2 + 150) + Position).ToPoint(),
+                (new Vector2(Width / 4, Height / 2 - 150) + Position).ToPoint(),
+                WallThickness);
+            Walls.Add(wall);
+
+            // Right middle wall
+            wall = Wall.FromCoordinates(
+                (new Vector2(Width / 4 * 3, Height / 2 + 150) + Position).ToPoint(),
+                (new Vector2(Width / 4 * 3, Height / 2 - 150) + Position).ToPoint(),
+                WallThickness);
+            Walls.Add(wall);
+
+            // Spawn points
+            SpawnPoints.Add(new Vector2(Width / 2 - 100, Height / 2 - 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2, Height / 2 - 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2 + 100, Height / 2 - 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2 - 100, Height / 2 + 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2, Height / 2 + 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2 + 100, Height / 2 + 100) + Position);
+        }
+
+        private void CreateLayout4()
+        {
+            /* |-------------------------------------------------|
+             * |                                                 |
+             * |                                                 |
+             * |             ______________________              |
+             * |                                                 |
+             * |    |             x    x    x             |      |
+             * |    |                                     |      |
+             * |    |                                     |      |
+             * |    |             x    x    x             |      |
+             * |             ______________________              |
+             * |                                                 |
+             * |                                                 |
+             * |-------------------------------------------------|
+             */
+
+            // Top
+            var wall = Wall.FromCoordinates(
+                (new Vector2(Width / 2 - 200, Height / 4) + Position).ToPoint(),
+                (new Vector2(Width / 2 + 200, Height / 4) + Position).ToPoint(),
+                WallThickness);
+            Walls.Add(wall);
+
+            // Bottom
+            wall = Wall.FromCoordinates(
+                (new Vector2(Width / 2 - 200, Height / 4 * 3) + Position).ToPoint(),
+                (new Vector2(Width / 2 + 200, Height / 4 * 3) + Position).ToPoint(),
+                WallThickness);
+            Walls.Add(wall);
+
+            // Left
+            wall = Wall.FromCoordinates(
+                (new Vector2(100, Height / 2 - 75) + Position).ToPoint(),
+                (new Vector2(100, Height / 2 + 75) + Position).ToPoint(),
+                WallThickness);
+            Walls.Add(wall);
+
+            // Right
+            wall = Wall.FromCoordinates(
+                (new Vector2(Width - 100, Height / 2 - 75) + Position).ToPoint(),
+                (new Vector2(Width - 100, Height / 2 + 75) + Position).ToPoint(),
+                WallThickness);
+            Walls.Add(wall);
+
+            // Spawn points
+            SpawnPoints.Add(new Vector2(Width / 2 - 100, Height / 2 - 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2, Height / 2 - 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2 + 100, Height / 2 - 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2 - 100, Height / 2 + 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2, Height / 2 + 100) + Position);
+            SpawnPoints.Add(new Vector2(Width / 2 + 100, Height / 2 + 100) + Position);
         }
     }
 }
