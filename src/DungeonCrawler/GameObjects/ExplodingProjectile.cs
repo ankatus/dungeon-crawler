@@ -19,10 +19,10 @@ namespace DungeonCrawler.GameObjects
         {
         }
 
-        public override void Update(Room room)
+        public override void Update(Room room, Player player)
         {
             var previousState = State;
-            base.Update(room);
+            base.Update(room, player);
 
             if (State == GameObjectState.Inactive && previousState == GameObjectState.Active)
             {

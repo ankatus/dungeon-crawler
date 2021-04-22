@@ -84,7 +84,7 @@ namespace DungeonCrawler.Rooms
             for (var i = 0; i < Projectiles.Count; i++)
             {
                 var projectile = Projectiles[i];
-                projectile.Update(this);
+                projectile.Update(this, player);
             }
 
             PruneInActiveObjects();

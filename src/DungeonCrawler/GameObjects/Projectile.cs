@@ -34,10 +34,10 @@ namespace DungeonCrawler.GameObjects
         }
 
 
-        public virtual void Update(Room room)
+        public virtual void Update(Room room, Player player)
         {
             Position += Velocity;
-            var collisions = CollisionDetection.GetCollisions(this, room.AllObjects);
+            var collisions = CollisionDetection.GetCollisions(this, room.AllObjects.Concat(new[] {player}).ToList());
 
             foreach (var gameObject in collisions)
             {
