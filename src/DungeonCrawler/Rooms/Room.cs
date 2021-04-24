@@ -69,7 +69,7 @@ namespace DungeonCrawler.Rooms
             projectileCollisionObjects.Add(player);
 
             // Staggered update for enemies
-            if (_enemyUpdateIndex == Enemies.Count) _enemyUpdateIndex = 0;
+            if (_enemyUpdateIndex >= Enemies.Count) _enemyUpdateIndex = 0;
             for (var i = 0; i < Enemies.Count; i++)
             {
                 if (i == _enemyUpdateIndex) Enemies[i].Update(player, projectileCollisionObjects, false);
