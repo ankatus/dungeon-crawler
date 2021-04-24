@@ -23,13 +23,22 @@ namespace DungeonCrawler.UI.UIObjects
             _hpIndicator.Text = player.CurrentHealth.ToString(CultureInfo.InvariantCulture);
 
             // Gun indicators
-            // Add indicators if necessary
+            // Refresh if necessary
             if (_gunIndicators.Count != player.Guns.Count)
             {
-                var startPos = _gunIndicatorsStart;
-                startPos.X += _gunIndicators.Count * 15;
+                // There is a very weird behavior that drove me to do this...
+                for (var i = 0; i < Children.Count; i++)
+                {
+                    // Remove indicators from children
+                    if (_gunIndicators.Find(obj => obj.Id == Children[i].Id) == null) continue;
+                    Children.RemoveAt(i);
+                    i--;
+                }
+                _gunIndicators.Clear();
 
-                for (var index = _gunIndicators.Count; index < player.Guns.Count; index++)
+                var startPos = _gunIndicatorsStart;
+
+                for (var index = 0; index < player.Guns.Count; index++)
                 {
                     var position = startPos;
                     position.X += index * 15;
