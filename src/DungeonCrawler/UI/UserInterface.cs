@@ -20,6 +20,7 @@ namespace DungeonCrawler.UI
         public Menu MainMenu { get; set; }
         public Menu OptionsMenu { get; set; }
         public Menu PauseMenu { get; set; }
+        public Menu HowToPlayMenu { get; set; }
         public Button ResolutionButton { get; set; }
         public List<ResolutionSetting> Resolutions { get; }
         public List<UIObject> Elements { get; }
@@ -42,18 +43,29 @@ namespace DungeonCrawler.UI
             const int MENU_WIDTH = 600;
             const int MENU_HEIGHT = 400;
 
-            Resolutions.Add(new ResolutionSetting {Width = 960, Height = 540, Name = "960x540"});
-            Resolutions.Add(new ResolutionSetting {Width = 1280, Height = 720, Name = "1280x720"});
-            Resolutions.Add(new ResolutionSetting {Width = 1920, Height = 1080, Name = "1920x1080"});
+            Resolutions.Add(new ResolutionSetting { Width = 960, Height = 540, Name = "960x540" });
+            Resolutions.Add(new ResolutionSetting { Width = 1280, Height = 720, Name = "1280x720" });
+            Resolutions.Add(new ResolutionSetting { Width = 1920, Height = 1080, Name = "1920x1080" });
 
             _selectedResolutionIndex = 1;
+
+            // How to play menu
+            HowToPlayMenu = new Menu(new Vector2((float) Width / 2, (float) Height / 2), MENU_WIDTH,
+                MENU_HEIGHT);
+            HowToPlayMenu.AddTextBlock("Clear all rooms to win the game. If you die, you lose.");
+            HowToPlayMenu.AddTextBlock("Character moves with W, A, S and D keys.");
+            HowToPlayMenu.AddTextBlock("Use mouse to aim and shoot with left button.");
+            HowToPlayMenu.AddTextBlock("If you have multiple weapons, you can change between them with number keys.");
+            HowToPlayMenu.AddTextBlock("Character information is shown in bottom left corner of window.");
+            HowToPlayMenu.AddButton("Back", GoBackToPreviousMenu);
+            HowToPlayMenu.InfoMessage = "How to play";
 
             // Options menu
             OptionsMenu = new Menu(new Vector2((float) Width / 2, (float) Height / 2), MENU_WIDTH,
                 MENU_HEIGHT);
             ResolutionButton =
                 OptionsMenu.AddButton(Resolutions[_selectedResolutionIndex].Name, ChangeResolution);
-            OptionsMenu.AddButton("Back", () => ShowMainMenu("Main menu"));
+            OptionsMenu.AddButton("Back", GoBackToPreviousMenu);
             OptionsMenu.InfoMessage = "Options";
 
             // Main menu
@@ -65,13 +77,15 @@ namespace DungeonCrawler.UI
                 _game.StartNewGame();
             });
             MainMenu.AddButton("Options", ShowOptionsMenu);
+            MainMenu.AddButton("How to play", ShowHowToPlayMenu);
             MainMenu.AddButton("Exit", _game.Exit);
 
             // Pause menu
             PauseMenu = new Menu(new Vector2(Width / 2, Height / 2), MENU_WIDTH,
                 MENU_HEIGHT);
             PauseMenu.AddButton("Continue", () => { _game.GameState = GameState.Playing; });
-            PauseMenu.AddButton("Exit to main menu", () => { ShowMainMenu("Main Menu"); });
+            PauseMenu.AddButton("How to play", ShowHowToPlayMenu);
+            PauseMenu.AddButton("Exit to main menu", () => { _game.GameState = GameState.NotStarted; ShowMainMenu("Main Menu"); });
             PauseMenu.InfoMessage = "Game Paused";
 
             // Status bar
@@ -81,6 +95,7 @@ namespace DungeonCrawler.UI
             Elements.Add(MainMenu);
             Elements.Add(OptionsMenu);
             Elements.Add(PauseMenu);
+            Elements.Add(HowToPlayMenu);
             Elements.Add(StatusBar);
         }
 
@@ -101,6 +116,7 @@ namespace DungeonCrawler.UI
                         MainMenu.State = UIObjectState.Inactive;
                         PauseMenu.State = UIObjectState.Inactive;
                         OptionsMenu.State = UIObjectState.Inactive;
+                        HowToPlayMenu.State = UIObjectState.Inactive;
                         break;
                     case GameState.Defeat:
                         ShowMainMenu("Defeat");
@@ -150,7 +166,7 @@ namespace DungeonCrawler.UI
 
             return drawables;
         }
-        
+
         private void ShowMainMenu(string text)
         {
             if (MainMenu.State == UIObjectState.Active) return;
@@ -159,6 +175,7 @@ namespace DungeonCrawler.UI
             MainMenu.State = UIObjectState.Active;
             PauseMenu.State = UIObjectState.Inactive;
             OptionsMenu.State = UIObjectState.Inactive;
+            HowToPlayMenu.State = UIObjectState.Inactive;
         }
 
         private void ShowOptionsMenu()
@@ -168,6 +185,7 @@ namespace DungeonCrawler.UI
             MainMenu.State = UIObjectState.Inactive;
             PauseMenu.State = UIObjectState.Inactive;
             OptionsMenu.State = UIObjectState.Active;
+            HowToPlayMenu.State = UIObjectState.Inactive;
         }
 
         private void ShowPauseMenu()
@@ -177,6 +195,38 @@ namespace DungeonCrawler.UI
             MainMenu.State = UIObjectState.Inactive;
             PauseMenu.State = UIObjectState.Active;
             OptionsMenu.State = UIObjectState.Inactive;
+            HowToPlayMenu.State = UIObjectState.Inactive;
+        }
+
+        private void ShowHowToPlayMenu()
+        {
+            if (HowToPlayMenu.State == UIObjectState.Active) return;
+
+            MainMenu.State = UIObjectState.Inactive;
+            PauseMenu.State = UIObjectState.Inactive;
+            OptionsMenu.State = UIObjectState.Inactive;
+            HowToPlayMenu.State = UIObjectState.Active;
+        }
+
+        private void GoBackToPreviousMenu()
+        {
+            switch (_game.GameState)
+            {
+                case GameState.NotStarted:
+                    ShowMainMenu("Main Menu");
+                    break;
+                case GameState.Paused:
+                    ShowPauseMenu();
+                    break;
+                case GameState.Defeat:
+                    ShowMainMenu("Defeat");
+                    break;
+                case GameState.Victory:
+                    ShowMainMenu("Victory!");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private void ChangeResolution()

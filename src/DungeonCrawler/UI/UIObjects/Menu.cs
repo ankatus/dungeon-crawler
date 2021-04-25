@@ -11,7 +11,7 @@ namespace DungeonCrawler.UI.UIObjects
         private const int INFO_MESSAGE_HEIGHT = 50;
         private const int BUTTON_WIDTH = 200;
         private const int BUTTON_HEIGHT = 30;
-        private const int BUTTON_SPACING = 40;
+        private const int ELEMENT_SPACING = 40;
 
         public string InfoMessage
         {
@@ -19,7 +19,7 @@ namespace DungeonCrawler.UI.UIObjects
         }
         
         private readonly TextBlock _infoMessage;
-        private Vector2 _nextButtonPosition;
+        private Vector2 _nextElementPosition;
 
         public Menu(Vector2 position, int width, int height) : base(position, width, height)
         {
@@ -27,18 +27,27 @@ namespace DungeonCrawler.UI.UIObjects
             _infoMessage = new TextBlock("", infoMessagePosition, INFO_MESSAGE_WIDTH, INFO_MESSAGE_HEIGHT);
             Children.Add(_infoMessage);
 
-            _nextButtonPosition = _infoMessage.Position + new Vector2(0, INFO_MESSAGE_HEIGHT);
+            _nextElementPosition = _infoMessage.Position + new Vector2(0, INFO_MESSAGE_HEIGHT);
 
             State = UIObjectState.Inactive;
         }
 
         public Button AddButton(string text, Action action)
         {
-            var button = new Button(text, _nextButtonPosition, BUTTON_WIDTH, BUTTON_HEIGHT, action);
+            var button = new Button(text, _nextElementPosition, BUTTON_WIDTH, BUTTON_HEIGHT, action);
             Children.Add(button);
-            _nextButtonPosition += new Vector2(0, BUTTON_SPACING);
+            _nextElementPosition += new Vector2(0, ELEMENT_SPACING);
 
             return button;
+        }
+
+        public TextBlock AddTextBlock(string text)
+        {
+            var textBlock = new TextBlock(text, _nextElementPosition, 0, 0);
+            Children.Add(textBlock);
+            _nextElementPosition += new Vector2(0, ELEMENT_SPACING);
+
+            return textBlock;
         }
 
         public void Update(MouseEvent mouseEvent)
