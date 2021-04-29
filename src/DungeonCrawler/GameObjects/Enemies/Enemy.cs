@@ -25,7 +25,7 @@ namespace DungeonCrawler.GameObjects.Enemies
         private int _ticksSincePathUpdate;
         private List<Point> _path;
 
-        public Enemy(Room room, Vector2 position, int width, int height) : base(position, width, height)
+        protected Enemy(Room room, Vector2 position, int width, int height) : base(position, width, height)
         {
             _room = room;
             MaxHealth = 20;
@@ -78,6 +78,12 @@ namespace DungeonCrawler.GameObjects.Enemies
                     {
                         if (distanceVector.Length() < MOVE_BACK_DISTANCE)
                         {
+                            if (distanceVector.Length() == 0)
+                            {
+                                // If target is top off us, then move somewhere else
+                                distanceVector = Vector2.UnitX;
+                            }
+
                             // Move back, too close to target
                             actualTarget = localPosition - Vector2.Normalize(distanceVector) * MOVE_BACK_AMOUNT;
                         }
@@ -115,18 +121,28 @@ namespace DungeonCrawler.GameObjects.Enemies
 
             // Move
             var travelDirection = Vector2.Normalize(Vector2.Subtract(nextPosition, Position));
-            Position += travelDirection * MovingSpeed;
+            var tentativePosition = Position + travelDirection * MovingSpeed;
 
-            // // If overlapping, move back until not overlapping
-            // while (CheckWalls())
-            // {
-            //     Position -= travelDirection * _movingSpeed;
-            // }
+            while (CheckWalls(tentativePosition))
+            {
+                // Try to travel towards next position instead
+                tentativePosition = Position;
+                if (_path.Count == 0) break;
+
+                nextPosition = new Vector2(_path[0].X * _room.RoomGraph.TranslationFactor, _path[0].Y * _room.RoomGraph.TranslationFactor) + _room.Position;
+                _path.RemoveAt(0);
+                travelDirection = Vector2.Normalize(Vector2.Subtract(nextPosition, Position));
+                tentativePosition = Position + travelDirection * MovingSpeed;
+            }
+            
+
+            Position = tentativePosition;
         }
 
-        private bool CheckWalls()
+        private bool CheckWalls(Vector2 position)
         {
-            return CollisionDetection.GetOverlaps(this, _room.Walls.Cast<GameObject>().ToList()).Count > 0;
+            var collider = new Dummy(position, 10, 10);
+            return CollisionDetection.GetCollisions(collider, _room.Walls.Cast<GameObject>().ToList()).Count > 0;
         }
 
         private void Shoot(List<GameObject> gameObjects)
