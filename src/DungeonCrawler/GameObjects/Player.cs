@@ -32,7 +32,7 @@ namespace DungeonCrawler.GameObjects
             MaxHealth = 50;
             CurrentHealth = MaxHealth;
             var defaultGun = new DefaultGun(this);
-            Guns = new List<Gun> {defaultGun};
+            Guns = new List<Gun> { defaultGun };
             _activeGunIndex = 0;
         }
 
@@ -149,6 +149,13 @@ namespace DungeonCrawler.GameObjects
 
         private void Shoot()
         {
+            // If out of ammo, change to default gun
+            if (ActiveGun.Ammo == 0 && ActiveGun is not DefaultGun)
+            {
+                // Default gun is always index 0
+                ChangeWeapon(0);
+            }
+
             // Create vector from player to target coordinates
             var projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
 

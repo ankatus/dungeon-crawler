@@ -124,7 +124,7 @@ namespace DungeonCrawler
                     // Zoom back in
                     _showingMap = false;
                     GameState = GameState.CameraTravel;
-                    Camera.StartTravel(new Point(Map.CurrentRoomX * Map.RoomWidth,Map.CurrentRoomY *Map.RoomHeight), Map.RoomWidth, MAP_ZOOM_SPEED);
+                    Camera.StartTravel(new Point(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight), Map.RoomWidth, MAP_ZOOM_SPEED);
                 }
 
                 return;
@@ -173,7 +173,7 @@ namespace DungeonCrawler
                 // Zoom to show map
                 _showingMap = true;
                 GameState = GameState.CameraTravel;
-                Camera.StartTravel(new Point(0,0), Map.RoomWidth * Map.HorizontalRooms, MAP_ZOOM_SPEED);
+                Camera.StartTravel(new Point(0, 0), Map.RoomWidth * Map.HorizontalRooms, MAP_ZOOM_SPEED);
             }
 
             // Update map and check if camera should be moved
@@ -186,7 +186,7 @@ namespace DungeonCrawler
             {
                 // Move camera to next room
                 GameState = GameState.CameraTravel;
-                Camera.StartTravel(new Point(Map.CurrentRoomX * Map.RoomWidth,Map.CurrentRoomY *Map.RoomHeight), Map.RoomWidth, ROOM_ZOOM_SPEED);
+                Camera.StartTravel(new Point(Map.CurrentRoomX * Map.RoomWidth, Map.CurrentRoomY * Map.RoomHeight), Map.RoomWidth, ROOM_ZOOM_SPEED);
             }
         }
 
