@@ -78,6 +78,12 @@ namespace DungeonCrawler.GameObjects.Enemies
                     {
                         if (distanceVector.Length() < MOVE_BACK_DISTANCE)
                         {
+                            if (distanceVector.Length() == 0)
+                            {
+                                // If target is top off us, then move somewhere else
+                                distanceVector = Vector2.UnitX;
+                            }
+
                             // Move back, too close to target
                             actualTarget = localPosition - Vector2.Normalize(distanceVector) * MOVE_BACK_AMOUNT;
                         }
