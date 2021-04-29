@@ -66,13 +66,13 @@ namespace DungeonCrawler.GameObjects.Enemies
                 {
                     actualTarget = localPosition + Vector2.Normalize(distanceVector) * MAX_TARGET_DISTANCE;
                 }
-
+                
                 // Check if we are close to target
                 if (distanceVector.Length() < MIN_TARGET_DISTANCE)
                 {
                     // Calculate if target is visible
                     var targetIsVisible = IsProjectileGoingToHitPlayer(gameObjects);
-
+                
                     // Only if target is visible care about being too close to target
                     if (targetIsVisible)
                     {
@@ -83,7 +83,7 @@ namespace DungeonCrawler.GameObjects.Enemies
                                 // If target is top off us, then move somewhere else
                                 distanceVector = Vector2.UnitX;
                             }
-
+                
                             // Move back, too close to target
                             actualTarget = localPosition - Vector2.Normalize(distanceVector) * MOVE_BACK_AMOUNT;
                         }
@@ -97,10 +97,17 @@ namespace DungeonCrawler.GameObjects.Enemies
                     }
                 }
 
-                var path = Pathfinding.FindPath((localPosition / _room.RoomGraph.TranslationFactor).ToPoint(), (actualTarget / _room.RoomGraph.TranslationFactor).ToPoint(), _room.RoomGraph.Graph);
+                var path = Pathfinding.FindPath((localPosition / _room.RoomGraph.TranslationFactor).ToPoint(),
+                    (actualTarget / _room.RoomGraph.TranslationFactor).ToPoint(), _room.RoomGraph.Graph);
 
                 // If pathfinding failed, path will be empty
-                if (path.Count > 0) _path = path;
+                if (path.Count > 0)
+                {
+                    _path = path;
+
+                    // Remove the first position to make movement smoother
+                    if (_path.Count > 1) _path.RemoveAt(0);
+                }
             }
             else
             {
@@ -109,10 +116,9 @@ namespace DungeonCrawler.GameObjects.Enemies
 
             if (_path is null || _path.Count == 0) return;
 
-            // Remove the first position to make movement smoother
-            if (_path.Count > 1) _path.RemoveAt(0);
 
-            var nextPosition = new Vector2(_path[0].X * _room.RoomGraph.TranslationFactor, _path[0].Y * _room.RoomGraph.TranslationFactor) + _room.Position;
+            var nextPosition = new Vector2(_path[0].X * _room.RoomGraph.TranslationFactor,
+                _path[0].Y * _room.RoomGraph.TranslationFactor) + _room.Position;
 
             // Remove "used" position
             _path.RemoveAt(0);
@@ -123,20 +129,16 @@ namespace DungeonCrawler.GameObjects.Enemies
             var travelDirection = Vector2.Normalize(Vector2.Subtract(nextPosition, Position));
             var tentativePosition = Position + travelDirection * MovingSpeed;
 
-            while (CheckWalls(tentativePosition))
+            if (Vector2.Distance(Position, tentativePosition) > Vector2.Distance(Position, nextPosition))
             {
-                // Try to travel towards next position instead
-                tentativePosition = Position;
-                if (_path.Count == 0) break;
-
-                nextPosition = new Vector2(_path[0].X * _room.RoomGraph.TranslationFactor, _path[0].Y * _room.RoomGraph.TranslationFactor) + _room.Position;
+                // Next position reached
+                Position = nextPosition;
                 _path.RemoveAt(0);
-                travelDirection = Vector2.Normalize(Vector2.Subtract(nextPosition, Position));
-                tentativePosition = Position + travelDirection * MovingSpeed;
             }
-            
-
-            Position = tentativePosition;
+            else
+            {
+                Position = tentativePosition;
+            }
         }
 
         private bool CheckWalls(Vector2 position)
@@ -152,7 +154,8 @@ namespace DungeonCrawler.GameObjects.Enemies
             // Just fill ammo every time so that gun does not run out :)
             ActiveGun.FillAmmo();
 
-            if (IsProjectileGoingToHitPlayer(gameObjects)) _room.Projectiles.AddRange(ActiveGun.Shoot(Position, projectileTravelVector));
+            if (IsProjectileGoingToHitPlayer(gameObjects))
+                _room.Projectiles.AddRange(ActiveGun.Shoot(Position, projectileTravelVector));
         }
 
         private bool IsProjectileGoingToHitPlayer(List<GameObject> gameObjects)
