@@ -56,6 +56,8 @@ namespace DungeonCrawler
         private const float UI_OBJECT_LAYER = 0.7f;
         private const float UI_TEXT_LAYER = 0.8f;
 
+        private const int TEXT_RENDERING_REFERENCE_WINDOW_WIDTH = 1280;
+
         private readonly GraphicsDeviceManager _graphics;
         private float _windowAspectRatio;
         private SpriteBatch _spriteBatch;
@@ -346,6 +348,8 @@ namespace DungeonCrawler
             var text = obj.Text;
 
             var textSize = _testFont.MeasureString(text);
+            var scale = new Vector2((float) WindowWidth / TEXT_RENDERING_REFERENCE_WINDOW_WIDTH);
+            textSize *= scale;
             var onScreenPos = new Vector2(obj.Position.X * WindowWidth, obj.Position.Y * WindowHeight);
             var textLocation = onScreenPos - new Vector2(textSize.X / 2, textSize.Y / 2);
 
@@ -356,7 +360,7 @@ namespace DungeonCrawler
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-            _spriteBatch.DrawString(_testFont, text, textLocation, color, 0, new Vector2(0, 0), 1,
+            _spriteBatch.DrawString(_testFont, text, textLocation, color, 0, new Vector2(0, 0), scale,
                 SpriteEffects.None, UI_TEXT_LAYER);
         }
 
