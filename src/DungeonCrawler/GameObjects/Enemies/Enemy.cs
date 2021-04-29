@@ -135,8 +135,8 @@ namespace DungeonCrawler.GameObjects.Enemies
 
         private bool CheckWalls(Vector2 position)
         {
-            var collider = new Dummy(position, 1, 1);
-            return CollisionDetection.GetOverlaps(collider, _room.Walls.Cast<GameObject>().ToList()).Count > 0;
+            var collider = new Dummy(position, 10, 10);
+            return CollisionDetection.GetCollisions(collider, _room.Walls.Cast<GameObject>().ToList()).Count > 0;
         }
 
         private void Shoot(List<GameObject> gameObjects)
