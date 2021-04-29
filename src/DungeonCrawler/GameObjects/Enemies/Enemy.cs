@@ -120,9 +120,6 @@ namespace DungeonCrawler.GameObjects.Enemies
             var nextPosition = new Vector2(_path[0].X * _room.RoomGraph.TranslationFactor,
                 _path[0].Y * _room.RoomGraph.TranslationFactor) + _room.Position;
 
-            // Remove "used" position
-            _path.RemoveAt(0);
-
             if (nextPosition == Position) return;
 
             // Move
