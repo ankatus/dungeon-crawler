@@ -43,11 +43,11 @@ namespace DungeonCrawler.UI
             const int MENU_WIDTH = 600;
             const int MENU_HEIGHT = 400;
 
-            Resolutions.Add(new ResolutionSetting { Width = 960, Height = 540, Name = "960x540" });
             Resolutions.Add(new ResolutionSetting { Width = 1280, Height = 720, Name = "1280x720" });
             Resolutions.Add(new ResolutionSetting { Width = 1920, Height = 1080, Name = "1920x1080" });
+            Resolutions.Add(new ResolutionSetting { Width = 2560, Height = 1440, Name = "2560x1440" });
 
-            _selectedResolutionIndex = 1;
+            _selectedResolutionIndex = 0;
 
             // How to play menu
             HowToPlayMenu = new Menu(new Vector2((float) Width / 2, (float) Height / 2), MENU_WIDTH,
@@ -65,6 +65,7 @@ namespace DungeonCrawler.UI
                 MENU_HEIGHT);
             ResolutionButton =
                 OptionsMenu.AddButton(Resolutions[_selectedResolutionIndex].Name, ChangeResolution);
+            OptionsMenu.AddButton("Toggle full screen", () => _graphics.ToggleFullScreen());
             OptionsMenu.AddButton("Back", GoBackToPreviousMenu);
             OptionsMenu.InfoMessage = "Options";
 

@@ -117,6 +117,12 @@ namespace DungeonCrawler
             _graphics.ApplyChanges();
         }
 
+        public void ToggleFullScreen()
+        {
+            _graphics.ToggleFullScreen();
+            _graphics.ApplyChanges();
+        }
+
         public void Draw(List<GameObject> gameObjects, List<UiDrawable> uiDrawables)
         {
             float unitsPerPixel;
