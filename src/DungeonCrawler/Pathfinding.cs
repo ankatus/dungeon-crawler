@@ -19,12 +19,15 @@ namespace DungeonCrawler
             var nodes = new NodeContainer();
             var open = new List<Node>();
 
+            var closestPassableStartPoint = FindNearestPassablePoint(start, map);
+            if (closestPassableStartPoint == null) return null;
+
             var closestPassableEndPoint = FindNearestPassablePoint(end, map);
             if (closestPassableEndPoint == null) return null;
 
             end = (Point) closestPassableEndPoint;
 
-            var current = new Node(start, null);
+            var current = new Node((Point) closestPassableStartPoint, null);
             current.GScore = 0;
             current.FScore = Heuristic(current.Position, end);
             open.Add(current);
@@ -123,35 +126,34 @@ namespace DungeonCrawler
             timer.Start();
 
             // Check if point is passable
-            if (map[point.Y, point.X])
+            if (!map[point.Y, point.X]) return point;
+
+            // Point is not passable
+            // Find nearest open point
+            var position = point;
+            var foundNearestOpenPoint = false;
+            var currentOffset = 1;
+            while (foundNearestOpenPoint == false)
             {
-                // Point is not passable
-                // Find nearest open point
-                var position = point;
-                var foundNearestOpenPoint = false;
-                var currentOffset = 1;
-                while (foundNearestOpenPoint == false)
+                // Exit if takes too long
+                if (timer.Elapsed.Milliseconds >= maxSearchTime) return null;
+
+                for (var y = -currentOffset; y <= currentOffset; y += currentOffset * 2)
                 {
-                    // Exit if takes too long
-                    if (timer.Elapsed.Milliseconds >= maxSearchTime) return null;
-
-                    for (var y = -currentOffset; y <= currentOffset; y += currentOffset * 2)
+                    for (var x = -currentOffset; x <= currentOffset; x += currentOffset * 2)
                     {
-                        for (var x = -currentOffset; x <= currentOffset; x += currentOffset * 2)
-                        {
-                            var neighborPosition = new Point(position.X + x, position.Y + y);
+                        var neighborPosition = new Point(position.X + x, position.Y + y);
 
-                            // Check that node is inside map and open
-                            if (IsInsideMap(neighborPosition, map) && map[neighborPosition.Y, neighborPosition.X] == false)
-                            {
-                                point = neighborPosition;
-                                foundNearestOpenPoint = true;
-                            }
+                        // Check that node is inside map and open
+                        if (IsInsideMap(neighborPosition, map) && map[neighborPosition.Y, neighborPosition.X] == false)
+                        {
+                            point = neighborPosition;
+                            foundNearestOpenPoint = true;
                         }
                     }
-
-                    currentOffset++;
                 }
+
+                currentOffset++;
             }
 
             return point;
