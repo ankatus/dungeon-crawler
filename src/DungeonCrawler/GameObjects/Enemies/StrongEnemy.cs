@@ -26,7 +26,7 @@ namespace DungeonCrawler.GameObjects.Enemies
             _keptOldPath = KEEP_OLD_PATH_TIMES;
         }
 
-        protected override void UpdatePath(GameObject target, List<GameObject> gameObjects)
+        protected override void UpdatePath(GameObject targetObject, List<GameObject> otherObjects)
         {
             const int MAX_TARGET_DISTANCE = 1000;
             const int MIN_TARGET_DISTANCE = 100;
@@ -42,7 +42,7 @@ namespace DungeonCrawler.GameObjects.Enemies
             _keptOldPath = 0;
 
             var localPosition = Position - Room.Position;
-            var localTargetPosition = target.Position - Room.Position;
+            var localTargetPosition = targetObject.Position - Room.Position;
             var actualTarget = GetRandomPointNearPosition(localTargetPosition);
             var distanceVector = Vector2.Subtract(localTargetPosition, localPosition);
 
@@ -56,7 +56,7 @@ namespace DungeonCrawler.GameObjects.Enemies
             if (distanceVector.Length() < MIN_TARGET_DISTANCE)
             {
                 // Calculate if target is visible
-                var targetIsVisible = IsProjectileGoingToHitPlayer(gameObjects);
+                var targetIsVisible = IsProjectileGoingToHitPlayer(otherObjects);
 
                 // Only if target is visible care about being too close to target
                 if (targetIsVisible)
@@ -93,16 +93,16 @@ namespace DungeonCrawler.GameObjects.Enemies
             Path = newPath;
         }
 
-        private Vector2 GetRandomPointNearPosition(Vector2 targetPos)
+        private Vector2 GetRandomPointNearPosition(Vector2 position)
         {
             var random = new Random();
 
-            var distance = random.Next(1000);
+            var distance = random.Next(200);
 
-            var xLower = (int) Math.Min(Math.Max(targetPos.X - distance, Room.Position.X), Room.Position.X + Room.Width);
-            var xUpper = (int) Math.Max(Math.Min(targetPos.X + distance, Room.Position.X + Room.Width), 0);
-            var yLower = (int) Math.Min(Math.Max(targetPos.Y - distance, Room.Position.Y), Room.Position.Y + Room.Height);
-            var yUpper = (int) Math.Max(Math.Min(targetPos.Y + distance, Room.Position.Y + Room.Height), 0);
+            var xLower = (int) Math.Min(Math.Max(position.X - distance, 0), Room.Width);
+            var xUpper = (int) Math.Max(Math.Min(position.X + distance, Room.Width), 0);
+            var yLower = (int) Math.Min(Math.Max(position.Y - distance, 0), Room.Height);
+            var yUpper = (int) Math.Max(Math.Min(position.Y + distance, Room.Height), 0);
 
 
             var randomX = random.Next(xLower, xUpper + 1);

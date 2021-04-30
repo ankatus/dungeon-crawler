@@ -39,7 +39,7 @@ namespace DungeonCrawler.GameObjects.Enemies
             Shoot(gameObjects);
         }
 
-        protected virtual void UpdatePath(GameObject target, List<GameObject> gameObjects)
+        protected virtual void UpdatePath(GameObject targetObject, List<GameObject> otherObjects)
         {
             // Calculate path
             const int MAX_TARGET_DISTANCE = 1000;
@@ -48,7 +48,7 @@ namespace DungeonCrawler.GameObjects.Enemies
             const int MOVE_BACK_AMOUNT = 10;
 
             var localPosition = Position - Room.Position;
-            var localTargetPosition = target.Position - Room.Position;
+            var localTargetPosition = targetObject.Position - Room.Position;
             var actualTarget = localTargetPosition;
             var distanceVector = Vector2.Subtract(localTargetPosition, localPosition);
 
@@ -62,7 +62,7 @@ namespace DungeonCrawler.GameObjects.Enemies
             if (distanceVector.Length() < MIN_TARGET_DISTANCE)
             {
                 // Calculate if target is visible
-                var targetIsVisible = IsProjectileGoingToHitPlayer(gameObjects);
+                var targetIsVisible = IsProjectileGoingToHitPlayer(otherObjects);
 
                 // Only if target is visible care about being too close to target
                 if (targetIsVisible)

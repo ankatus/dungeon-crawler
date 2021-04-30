@@ -25,13 +25,8 @@ namespace DungeonCrawler.GameObjects.Enemies
             _keptOldPath = KEEP_OLD_PATH_TIMES;
         }
 
-        protected override void UpdatePath(GameObject target, List<GameObject> gameObjects)
+        protected override void UpdatePath(GameObject targetObject, List<GameObject> otherObjects)
         {
-            const int MAX_TARGET_DISTANCE = 1000;
-            const int MIN_TARGET_DISTANCE = 100;
-            const int MOVE_BACK_DISTANCE = 90;
-            const int MOVE_BACK_AMOUNT = 10;
-
             if (_keptOldPath < KEEP_OLD_PATH_TIMES)
             {
                 _keptOldPath++;
@@ -40,48 +35,13 @@ namespace DungeonCrawler.GameObjects.Enemies
 
             _keptOldPath = 0;
 
-            var localPosition = Position - Room.Position;
-            var localTargetPosition = target.Position - Room.Position;
-            var actualTarget = PickTargetPosition(localTargetPosition);
-            var distanceVector = Vector2.Subtract(localTargetPosition, localPosition);
+            var ownLocalPos = Position - Room.Position;
+            var movementTarget = DecideMovement(targetObject, otherObjects);
 
-            // If distance is too long, set actual target to MAX_TARGET_DISTANCE towards target
-            if (distanceVector.Length() > MAX_TARGET_DISTANCE)
-            {
-                actualTarget = localPosition + Vector2.Normalize(distanceVector) * MAX_TARGET_DISTANCE;
-            }
-
-            // Check if we are close to target
-            if (distanceVector.Length() < MIN_TARGET_DISTANCE)
-            {
-                // Calculate if target is visible
-                var targetIsVisible = IsProjectileGoingToHitPlayer(gameObjects);
-
-                // Only if target is visible care about being too close to target
-                if (targetIsVisible)
-                {
-                    if (distanceVector.Length() < MOVE_BACK_DISTANCE)
-                    {
-                        if (distanceVector.Length() == 0)
-                        {
-                            // If target is top off us, then move somewhere else
-                            distanceVector = Vector2.UnitX;
-                        }
-
-                        // Move back, too close to target
-                        actualTarget = localPosition - Vector2.Normalize(distanceVector) * MOVE_BACK_AMOUNT;
-                    }
-                    else
-                    {
-                        // Stop, close enough to target
-                        Path = new List<Point>();
-                        return;
-                    }
-                }
-            }
-
-            var newPath = Pathfinding.FindPath((localPosition / Room.RoomGraph.TranslationFactor).ToPoint(),
-                (actualTarget / Room.RoomGraph.TranslationFactor).ToPoint(), Room.RoomGraph.Graph);
+            var newPath = Pathfinding.FindPath(
+                (ownLocalPos / Room.RoomGraph.TranslationFactor).ToPoint(),
+                (movementTarget / Room.RoomGraph.TranslationFactor).ToPoint(), 
+                Room.RoomGraph.Graph);
 
             // If pathfinding failed, path will be empty
             if (newPath.Count == 0) return;
@@ -92,28 +52,76 @@ namespace DungeonCrawler.GameObjects.Enemies
             Path = newPath;
         }
 
-        private Vector2 PickTargetPosition(Vector2 target)
+        private Vector2 DecideMovement(GameObject targetObject, List<GameObject> gameObjects)
+        {
+            const int MAX_TARGET_DISTANCE = 1000;
+            const int MIN_TARGET_DISTANCE = 100;
+            const int MOVE_BACK_DISTANCE = 90;
+            const int MOVE_BACK_AMOUNT = 10;
+
+            var ownLocalPos = Position - Room.Position;
+            var targetObjLocalPos = targetObject.Position - Room.Position;
+
+            var distanceVector = Vector2.Subtract(targetObjLocalPos, ownLocalPos);
+
+            // If distance is too long, set actual target to MAX_TARGET_DISTANCE towards target
+            if (distanceVector.Length() > MAX_TARGET_DISTANCE)
+            {
+                return ownLocalPos + Vector2.Normalize(distanceVector) * MAX_TARGET_DISTANCE;
+            }
+
+            // Check if we are close to target
+            if (distanceVector.Length() < MIN_TARGET_DISTANCE)
+            {
+                // Calculate if target is visible
+                var targetIsVisible = IsProjectileGoingToHitPlayer(gameObjects);
+
+                // Only if target is visible care about being too close to target
+                if (!targetIsVisible) return PickMovementTarget(targetObjLocalPos);
+
+                if (distanceVector.Length() < MOVE_BACK_DISTANCE)
+                {
+                    if (distanceVector.Length() == 0)
+                    {
+                        // If target is top off us, then move somewhere else
+                        distanceVector = Vector2.UnitX;
+                    }
+
+                    // Move back, too close to target
+                    return ownLocalPos - Vector2.Normalize(distanceVector) * MOVE_BACK_AMOUNT;
+                }
+                else
+                {
+                    // Stop, close enough to target
+                    return ownLocalPos;
+                }
+            }
+
+            return PickMovementTarget(targetObjLocalPos);
+        }
+
+        private Vector2 PickMovementTarget(Vector2 targetObjLocation)
         {
             return _chaseSide switch
             {
-                ChaseSide.Top => GetRandomPointNearPosition(new Vector2(target.X, target.Y - 200)),
-                ChaseSide.Right => GetRandomPointNearPosition(new Vector2(target.X + 200, target.Y)),
-                ChaseSide.Bottom => GetRandomPointNearPosition(new Vector2(target.X, target.Y + 200)),
-                ChaseSide.Left => GetRandomPointNearPosition(new Vector2(target.X - 200, target.Y)),
+                ChaseSide.Top => GetRandomPointNearPosition(new Vector2(targetObjLocation.X, targetObjLocation.Y - 200)),
+                ChaseSide.Right => GetRandomPointNearPosition(new Vector2(targetObjLocation.X + 200, targetObjLocation.Y)),
+                ChaseSide.Bottom => GetRandomPointNearPosition(new Vector2(targetObjLocation.X, targetObjLocation.Y + 200)),
+                ChaseSide.Left => GetRandomPointNearPosition(new Vector2(targetObjLocation.X - 200, targetObjLocation.Y)),
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
 
-        private Vector2 GetRandomPointNearPosition(Vector2 targetPos)
+        private Vector2 GetRandomPointNearPosition(Vector2 position)
         {
             var random = new Random();
 
             var distance = random.Next(200);
 
-            var xLower = (int) Math.Min(Math.Max(targetPos.X - distance, Room.Position.X), Room.Position.X + Room.Width);
-            var xUpper = (int) Math.Max(Math.Min(targetPos.X + distance, Room.Position.X + Room.Width), 0);
-            var yLower = (int) Math.Min(Math.Max(targetPos.Y - distance, Room.Position.Y), Room.Position.Y + Room.Height);
-            var yUpper = (int) Math.Max(Math.Min(targetPos.Y + distance, Room.Position.Y + Room.Height), 0);
+            var xLower = (int) Math.Min(Math.Max(position.X - distance, 0), Room.Width);
+            var xUpper = (int) Math.Max(Math.Min(position.X + distance, Room.Width), 0);
+            var yLower = (int) Math.Min(Math.Max(position.Y - distance, 0), Room.Height);
+            var yUpper = (int) Math.Max(Math.Min(position.Y + distance, Room.Height), 0);
 
 
             var randomX = random.Next(xLower, xUpper + 1);
