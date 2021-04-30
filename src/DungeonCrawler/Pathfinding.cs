@@ -20,10 +20,10 @@ namespace DungeonCrawler
             var open = new List<Node>();
 
             var closestPassableStartPoint = FindNearestPassablePoint(start, map);
-            if (closestPassableStartPoint == null) return null;
+            if (closestPassableStartPoint == null) return new List<Point>();
 
             var closestPassableEndPoint = FindNearestPassablePoint(end, map);
-            if (closestPassableEndPoint == null) return null;
+            if (closestPassableEndPoint == null) return new List<Point>();
 
             end = (Point) closestPassableEndPoint;
 
