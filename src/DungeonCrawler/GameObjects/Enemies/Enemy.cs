@@ -14,11 +14,8 @@ namespace DungeonCrawler.GameObjects.Enemies
 {
     public abstract class Enemy : GameObject
     {
-        private const int PATH_UPDATE_INTERVAL = 1;
-
-        private readonly Room _room;
-        private int _ticksSincePathUpdate;
-        private List<Point> _path;
+        protected Room Room { get; }
+        protected List<Point> Path { get; set; }
 
         public float MaxHealth { get; protected set; }
         public float CurrentHealth { get; protected set; }
@@ -27,13 +24,12 @@ namespace DungeonCrawler.GameObjects.Enemies
 
         protected Enemy(Room room, Vector2 position, int width, int height) : base(position, width, height)
         {
-            _room = room;
+            Room = room;
             MaxHealth = 20;
             CurrentHealth = MaxHealth;
             MovingSpeed = 2;
             ActiveGun = new DefaultGun(this);
-            _ticksSincePathUpdate = PATH_UPDATE_INTERVAL;
-            _path = new List<Point>();
+            Path = new List<Point>();
         }
 
         public void Update(GameObject target, List<GameObject> gameObjects, bool noPathUpdate)
@@ -51,8 +47,8 @@ namespace DungeonCrawler.GameObjects.Enemies
             const int MOVE_BACK_DISTANCE = 90;
             const int MOVE_BACK_AMOUNT = 10;
 
-            var localPosition = Position - _room.Position;
-            var localTargetPosition = target.Position - _room.Position;
+            var localPosition = Position - Room.Position;
+            var localTargetPosition = target.Position - Room.Position;
             var actualTarget = localTargetPosition;
             var distanceVector = Vector2.Subtract(localTargetPosition, localPosition);
 
@@ -85,15 +81,14 @@ namespace DungeonCrawler.GameObjects.Enemies
                     else
                     {
                         // Stop, close enough to target
-                        _path = new List<Point>();
-                        _ticksSincePathUpdate = 0;
+                        Path = new List<Point>();
                         return;
                     }
                 }
             }
 
-            var newPath = Pathfinding.FindPath((localPosition / _room.RoomGraph.TranslationFactor).ToPoint(),
-                (actualTarget / _room.RoomGraph.TranslationFactor).ToPoint(), _room.RoomGraph.Graph);
+            var newPath = Pathfinding.FindPath((localPosition / Room.RoomGraph.TranslationFactor).ToPoint(),
+                (actualTarget / Room.RoomGraph.TranslationFactor).ToPoint(), Room.RoomGraph.Graph);
 
             // If pathfinding failed, path will be empty
             if (newPath.Count == 0) return;
@@ -101,23 +96,14 @@ namespace DungeonCrawler.GameObjects.Enemies
             // Remove the first position to make movement smoother
             if (newPath.Count > 1) newPath.RemoveAt(0);
 
-            _path = newPath;
+            Path = newPath;
         }
 
         private void ChaseTarget(GameObject target, List<GameObject> gameObjects, bool noPathUpdate)
         {
             RotateTowardsTarget(target);
 
-            if (_ticksSincePathUpdate >= PATH_UPDATE_INTERVAL && !noPathUpdate)
-            {
-                UpdatePath(target, gameObjects);
-            }
-            else
-            {
-                _ticksSincePathUpdate++;
-            }
-
-            if (_path.Count == 0) return;
+            if (!noPathUpdate) UpdatePath(target, gameObjects);
 
             MoveTowardsNextPoint();
         }
@@ -125,24 +111,29 @@ namespace DungeonCrawler.GameObjects.Enemies
         private Vector2 TranslatePathPoint(Point pathPoint)
         {
             var (x, y) = pathPoint;
-            return new Vector2(x * _room.RoomGraph.TranslationFactor,
-                y * _room.RoomGraph.TranslationFactor) + _room.Position;
+            return new Vector2(x * Room.RoomGraph.TranslationFactor,
+                y * Room.RoomGraph.TranslationFactor) + Room.Position;
         }
 
         private void MoveTowardsNextPoint()
         {
-            var nextPathPosition = TranslatePathPoint(_path[0]);
+            if (Path.Count == 0) return;
+
+            var nextPathPosition = TranslatePathPoint(Path[0]);
             var nextPathPositionVec = Vector2.Subtract(nextPathPosition, Position);
-            
+
             while (MovingSpeed > nextPathPositionVec.Length())
             {
                 // Will overshoot next path point, continue on towards the subsequent one
                 Position = nextPathPosition;
-                _path.RemoveAt(0);
-                nextPathPosition = TranslatePathPoint(_path[0]);
+                Path.RemoveAt(0);
+
+                if (Path.Count == 0) return;
+
+                nextPathPosition = TranslatePathPoint(Path[0]);
                 nextPathPositionVec = Vector2.Subtract(nextPathPosition, Position);
             }
-             
+
             var newPosition = Vector2.Normalize(nextPathPositionVec) * MovingSpeed + Position;
             Position = newPosition;
         }
@@ -161,10 +152,10 @@ namespace DungeonCrawler.GameObjects.Enemies
             ActiveGun.FillAmmo();
 
             if (IsProjectileGoingToHitPlayer(gameObjects))
-                _room.Projectiles.AddRange(ActiveGun.Shoot(Position, projectileTravelVector));
+                Room.Projectiles.AddRange(ActiveGun.Shoot(Position, projectileTravelVector));
         }
 
-        private bool IsProjectileGoingToHitPlayer(List<GameObject> gameObjects)
+        protected bool IsProjectileGoingToHitPlayer(List<GameObject> gameObjects)
         {
             // Enemy is always facing player so travel vector can be calculated using rotation
             var projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
