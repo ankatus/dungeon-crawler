@@ -99,10 +99,10 @@ namespace DungeonCrawler.GameObjects.Enemies
 
             var distance = random.Next(1000);
 
-            var xLower = (int) Math.Max(targetPos.X - distance, Room.Position.X);
-            var xUpper = (int) Math.Min(targetPos.X + distance, Room.Position.X + Room.Width);
-            var yLower = (int) Math.Max(targetPos.Y - distance, Room.Position.Y);
-            var yUpper = (int) Math.Min(targetPos.Y + distance, Room.Position.Y + Room.Height);
+            var xLower = (int) Math.Min(Math.Max(targetPos.X - distance, Room.Position.X), Room.Position.X + Room.Width);
+            var xUpper = (int) Math.Max(Math.Min(targetPos.X + distance, Room.Position.X + Room.Width), 0);
+            var yLower = (int) Math.Min(Math.Max(targetPos.Y - distance, Room.Position.Y), Room.Position.Y + Room.Height);
+            var yUpper = (int) Math.Max(Math.Min(targetPos.Y + distance, Room.Position.Y + Room.Height), 0);
 
 
             var randomX = random.Next(xLower, xUpper + 1);
