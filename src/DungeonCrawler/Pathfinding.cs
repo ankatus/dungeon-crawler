@@ -126,7 +126,7 @@ namespace DungeonCrawler
             timer.Start();
 
             // Check if point is passable
-            if (!map[point.Y, point.X]) return point;
+            if (IsInsideMap(point, map) && !map[point.Y, point.X]) return point;
 
             // Point is not passable
             // Find nearest open point
