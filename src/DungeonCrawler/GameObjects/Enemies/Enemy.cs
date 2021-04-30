@@ -14,6 +14,11 @@ namespace DungeonCrawler.GameObjects.Enemies
 {
     public abstract class Enemy : GameObject
     {
+        private const int DEFAULT_UPDATE_INTERVAL = 10;
+
+        private int _ticksSincePathUpdate;
+
+        protected int PathUpdateInterval { get; set; }
         protected Room Room { get; }
         protected List<Point> Path { get; set; }
 
@@ -24,6 +29,7 @@ namespace DungeonCrawler.GameObjects.Enemies
 
         protected Enemy(Room room, Vector2 position, int width, int height) : base(position, width, height)
         {
+            PathUpdateInterval = DEFAULT_UPDATE_INTERVAL;
             Room = room;
             MaxHealth = 20;
             CurrentHealth = MaxHealth;
@@ -39,56 +45,23 @@ namespace DungeonCrawler.GameObjects.Enemies
             Shoot(gameObjects);
         }
 
-        protected virtual void UpdatePath(GameObject targetObject, List<GameObject> otherObjects)
+        protected void UpdatePath(GameObject targetObject, List<GameObject> otherObjects)
         {
-            // Calculate path
-            const int MAX_TARGET_DISTANCE = 1000;
-            const int MIN_TARGET_DISTANCE = 100;
-            const int MOVE_BACK_DISTANCE = 90;
-            const int MOVE_BACK_AMOUNT = 10;
-
-            var localPosition = Position - Room.Position;
-            var localTargetPosition = targetObject.Position - Room.Position;
-            var actualTarget = localTargetPosition;
-            var distanceVector = Vector2.Subtract(localTargetPosition, localPosition);
-
-            // If distance is too long, set actual target to MAX_TARGET_DISTANCE towards target
-            if (distanceVector.Length() > MAX_TARGET_DISTANCE)
+            if (_ticksSincePathUpdate < PathUpdateInterval)
             {
-                actualTarget = localPosition + Vector2.Normalize(distanceVector) * MAX_TARGET_DISTANCE;
+                _ticksSincePathUpdate++;
+                return;
             }
 
-            // Check if we are close to target
-            if (distanceVector.Length() < MIN_TARGET_DISTANCE)
-            {
-                // Calculate if target is visible
-                var targetIsVisible = IsProjectileGoingToHitPlayer(otherObjects);
+            _ticksSincePathUpdate = 0;
 
-                // Only if target is visible care about being too close to target
-                if (targetIsVisible)
-                {
-                    if (distanceVector.Length() < MOVE_BACK_DISTANCE)
-                    {
-                        if (distanceVector.Length() == 0)
-                        {
-                            // If target is top off us, then move somewhere else
-                            distanceVector = Vector2.UnitX;
-                        }
+            var ownLocalPos = Position - Room.Position;
+            var movementTarget = DecideMovement(targetObject, otherObjects);
 
-                        // Move back, too close to target
-                        actualTarget = localPosition - Vector2.Normalize(distanceVector) * MOVE_BACK_AMOUNT;
-                    }
-                    else
-                    {
-                        // Stop, close enough to target
-                        Path = new List<Point>();
-                        return;
-                    }
-                }
-            }
-
-            var newPath = Pathfinding.FindPath((localPosition / Room.RoomGraph.TranslationFactor).ToPoint(),
-                (actualTarget / Room.RoomGraph.TranslationFactor).ToPoint(), Room.RoomGraph.Graph);
+            var newPath = Pathfinding.FindPath(
+                (ownLocalPos / Room.RoomGraph.TranslationFactor).ToPoint(),
+                (movementTarget / Room.RoomGraph.TranslationFactor).ToPoint(), 
+                Room.RoomGraph.Graph);
 
             // If pathfinding failed, path will be empty
             if (newPath.Count == 0) return;
@@ -98,6 +71,8 @@ namespace DungeonCrawler.GameObjects.Enemies
 
             Path = newPath;
         }
+
+        protected abstract Vector2 DecideMovement(GameObject targetObject, List<GameObject> otherObjects);
 
         private void ChaseTarget(GameObject target, List<GameObject> gameObjects, bool noPathUpdate)
         {
@@ -192,6 +167,24 @@ namespace DungeonCrawler.GameObjects.Enemies
             }
 
             return projectileHitPlayer;
+        }
+        
+        protected Vector2 GetRandomPointNearPosition(Vector2 position, int maxDistance)
+        {
+            var random = new Random();
+
+            var distance = random.Next(maxDistance);
+
+            var xLower = (int) Math.Min(Math.Max(position.X - distance, 0), Room.Width);
+            var xUpper = (int) Math.Max(Math.Min(position.X + distance, Room.Width), 0);
+            var yLower = (int) Math.Min(Math.Max(position.Y - distance, 0), Room.Height);
+            var yUpper = (int) Math.Max(Math.Min(position.Y + distance, Room.Height), 0);
+
+
+            var randomX = random.Next(xLower, xUpper + 1);
+            var randomY = random.Next(yLower, yUpper + 1);
+
+            return new Vector2(randomX, randomY);
         }
 
         public void ProjectileCollision(Projectile projectile)

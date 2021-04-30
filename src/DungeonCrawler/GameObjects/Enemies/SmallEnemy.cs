@@ -14,45 +14,15 @@ namespace DungeonCrawler.GameObjects.Enemies
 
         private const int WIDTH = 30;
         private const int HEIGHT = 30;
-        private const int KEEP_OLD_PATH_TIMES = 5;
-
-        private int _keptOldPath;
+        
         private readonly ChaseSide _chaseSide;
 
         public SmallEnemy(Room room, Vector2 position) : base(room, position, WIDTH, HEIGHT)
         {
             _chaseSide = PickRandomChaseSide();
-            _keptOldPath = KEEP_OLD_PATH_TIMES;
         }
 
-        protected override void UpdatePath(GameObject targetObject, List<GameObject> otherObjects)
-        {
-            if (_keptOldPath < KEEP_OLD_PATH_TIMES)
-            {
-                _keptOldPath++;
-                return;
-            }
-
-            _keptOldPath = 0;
-
-            var ownLocalPos = Position - Room.Position;
-            var movementTarget = DecideMovement(targetObject, otherObjects);
-
-            var newPath = Pathfinding.FindPath(
-                (ownLocalPos / Room.RoomGraph.TranslationFactor).ToPoint(),
-                (movementTarget / Room.RoomGraph.TranslationFactor).ToPoint(), 
-                Room.RoomGraph.Graph);
-
-            // If pathfinding failed, path will be empty
-            if (newPath.Count == 0) return;
-
-            // Remove the first position to make movement smoother
-            if (newPath.Count > 1) newPath.RemoveAt(0);
-
-            Path = newPath;
-        }
-
-        private Vector2 DecideMovement(GameObject targetObject, List<GameObject> gameObjects)
+        protected override Vector2 DecideMovement(GameObject targetObject, List<GameObject> otherObjects)
         {
             const int MAX_TARGET_DISTANCE = 1000;
             const int MIN_TARGET_DISTANCE = 100;
@@ -74,7 +44,7 @@ namespace DungeonCrawler.GameObjects.Enemies
             if (distanceVector.Length() < MIN_TARGET_DISTANCE)
             {
                 // Calculate if target is visible
-                var targetIsVisible = IsProjectileGoingToHitPlayer(gameObjects);
+                var targetIsVisible = IsProjectileGoingToHitPlayer(otherObjects);
 
                 // Only if target is visible care about being too close to target
                 if (!targetIsVisible) return PickMovementTarget(targetObjLocalPos);
@@ -102,32 +72,17 @@ namespace DungeonCrawler.GameObjects.Enemies
 
         private Vector2 PickMovementTarget(Vector2 targetObjLocation)
         {
+            const int RANDOM_POS_MAX_DISTANCE = 200;
+            const int SIDE_POS_OFFSET_FROM_TARGET = 200;
+
             return _chaseSide switch
             {
-                ChaseSide.Top => GetRandomPointNearPosition(new Vector2(targetObjLocation.X, targetObjLocation.Y - 200)),
-                ChaseSide.Right => GetRandomPointNearPosition(new Vector2(targetObjLocation.X + 200, targetObjLocation.Y)),
-                ChaseSide.Bottom => GetRandomPointNearPosition(new Vector2(targetObjLocation.X, targetObjLocation.Y + 200)),
-                ChaseSide.Left => GetRandomPointNearPosition(new Vector2(targetObjLocation.X - 200, targetObjLocation.Y)),
+                ChaseSide.Top => GetRandomPointNearPosition(new Vector2(targetObjLocation.X, targetObjLocation.Y - SIDE_POS_OFFSET_FROM_TARGET), RANDOM_POS_MAX_DISTANCE),
+                ChaseSide.Right => GetRandomPointNearPosition(new Vector2(targetObjLocation.X + SIDE_POS_OFFSET_FROM_TARGET, targetObjLocation.Y), RANDOM_POS_MAX_DISTANCE),
+                ChaseSide.Bottom => GetRandomPointNearPosition(new Vector2(targetObjLocation.X, targetObjLocation.Y + SIDE_POS_OFFSET_FROM_TARGET), RANDOM_POS_MAX_DISTANCE),
+                ChaseSide.Left => GetRandomPointNearPosition(new Vector2(targetObjLocation.X - SIDE_POS_OFFSET_FROM_TARGET, targetObjLocation.Y), RANDOM_POS_MAX_DISTANCE),
                 _ => throw new ArgumentOutOfRangeException()
             };
-        }
-
-        private Vector2 GetRandomPointNearPosition(Vector2 position)
-        {
-            var random = new Random();
-
-            var distance = random.Next(200);
-
-            var xLower = (int) Math.Min(Math.Max(position.X - distance, 0), Room.Width);
-            var xUpper = (int) Math.Max(Math.Min(position.X + distance, Room.Width), 0);
-            var yLower = (int) Math.Min(Math.Max(position.Y - distance, 0), Room.Height);
-            var yUpper = (int) Math.Max(Math.Min(position.Y + distance, Room.Height), 0);
-
-
-            var randomX = random.Next(xLower, xUpper + 1);
-            var randomY = random.Next(yLower, yUpper + 1);
-
-            return new Vector2(randomX, randomY);
         }
 
         private static ChaseSide PickRandomChaseSide()
