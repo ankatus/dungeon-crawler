@@ -18,7 +18,7 @@ namespace DungeonCrawler.GameObjects.Enemies
         {
             // Give this slow dude a bit more time to move before calculating a new path
             PathUpdateInterval = 20;
-            MaxHealth = 60;
+            MaxHealth = 30;
             CurrentHealth = MaxHealth;
             MovingSpeed = 1;
             ActiveGun = new Shotgun(this);
