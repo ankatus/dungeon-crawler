@@ -10,8 +10,8 @@ namespace DungeonCrawler.Guns
         public DefaultGun(GameObject owner) : base(owner)
         {
             BaseDamage = 1.0f;
-            BaseSpeed = 10.0f;
-            BaseFirerate = 10.0f;
+            BaseSpeed = 7.0f;
+            BaseFirerate = 5.0f;
         }
 
         public override List<Projectile> Shoot(Vector2 position, Vector2 direction)

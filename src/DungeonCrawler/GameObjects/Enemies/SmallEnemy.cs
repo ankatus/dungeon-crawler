@@ -20,6 +20,8 @@ namespace DungeonCrawler.GameObjects.Enemies
         public SmallEnemy(Room room, Vector2 position) : base(room, position, WIDTH, HEIGHT)
         {
             _chaseSide = PickRandomChaseSide();
+            MovingSpeed = 4;
+            MaxHealth = 15;
         }
 
         protected override Vector2 DecideMovement(GameObject targetObject, List<GameObject> otherObjects)
