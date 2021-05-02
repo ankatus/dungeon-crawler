@@ -9,10 +9,10 @@ namespace DungeonCrawler.Guns
     {
         public SniperGun(GameObject owner) : base(owner)
         {
-            BaseDamage = 10.0f;
-            BaseSpeed = 20.0f;
+            BaseDamage = 12.0f;
+            BaseSpeed = 50.0f;
             BaseFirerate = 1.0f;
-            MaxAmmo = 10;
+            MaxAmmo = 12;
         }
 
         public override List<Projectile> Shoot(Vector2 position, Vector2 direction)
