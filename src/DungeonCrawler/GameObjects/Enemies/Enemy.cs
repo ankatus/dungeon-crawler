@@ -30,6 +30,7 @@ namespace DungeonCrawler.GameObjects.Enemies
         protected Enemy(Room room, Vector2 position, int width, int height) : base(position, width, height)
         {
             PathUpdateInterval = DEFAULT_UPDATE_INTERVAL;
+            _ticksSincePathUpdate = PathUpdateInterval;
             Room = room;
             MaxHealth = 20;
             CurrentHealth = MaxHealth;
