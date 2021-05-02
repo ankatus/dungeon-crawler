@@ -11,7 +11,7 @@ namespace DungeonCrawler.Guns
 
         public MachineGun(GameObject owner) : base(owner)
         {
-            BaseDamage = 0.5f;
+            BaseDamage = 1.0f;
             BaseSpeed = 10.0f;
             BaseFirerate = 40.0f;
             MaxAmmo = 300;

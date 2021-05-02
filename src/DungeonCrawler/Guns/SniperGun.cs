@@ -10,7 +10,7 @@ namespace DungeonCrawler.Guns
         public SniperGun(GameObject owner) : base(owner)
         {
             BaseDamage = 12.0f;
-            BaseSpeed = 50.0f;
+            BaseSpeed = 40.0f;
             BaseFirerate = 1.0f;
             MaxAmmo = 12;
         }

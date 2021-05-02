@@ -13,7 +13,7 @@ namespace DungeonCrawler.Guns
         {
             BaseDamage = 3.0f;
             BaseSpeed = 5.0f;
-            BaseFirerate = 0.5f;
+            BaseFirerate = 1.0f;
             MaxAmmo = 20;
         }
 
