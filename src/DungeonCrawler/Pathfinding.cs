@@ -20,10 +20,10 @@ namespace DungeonCrawler
             var open = new List<Node>();
 
             var closestPassableStartPoint = FindNearestPassablePoint(start, map);
-            if (closestPassableStartPoint == null) return null;
+            if (closestPassableStartPoint == null) return new List<Point>();
 
             var closestPassableEndPoint = FindNearestPassablePoint(end, map);
-            if (closestPassableEndPoint == null) return null;
+            if (closestPassableEndPoint == null) return new List<Point>();
 
             end = (Point) closestPassableEndPoint;
 
@@ -126,7 +126,7 @@ namespace DungeonCrawler
             timer.Start();
 
             // Check if point is passable
-            if (!map[point.Y, point.X]) return point;
+            if (IsInsideMap(point, map) && !map[point.Y, point.X]) return point;
 
             // Point is not passable
             // Find nearest open point

@@ -244,7 +244,7 @@ namespace DungeonCrawler
                 case Wall:
                     textureId = TextureId.Wall;
                     break;
-                case DefaultEnemy:
+                case SmallEnemy:
                     textureId = TextureId.DefaultEnemy;
                     break;
                 case StrongEnemy:

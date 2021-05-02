@@ -14,25 +14,28 @@ namespace DungeonCrawler.GameObjects.Enemies
 {
     public abstract class Enemy : GameObject
     {
-        private const int PATH_UPDATE_INTERVAL = 1;
+        private const int DEFAULT_UPDATE_INTERVAL = 10;
 
-        private readonly Room _room;
+        private int _ticksSincePathUpdate;
+
+        protected int PathUpdateInterval { get; set; }
+        protected Room Room { get; }
+        protected List<Point> Path { get; set; }
 
         public float MaxHealth { get; protected set; }
         public float CurrentHealth { get; protected set; }
         protected int MovingSpeed { get; set; }
         protected Gun ActiveGun { get; set; }
-        private int _ticksSincePathUpdate;
-        private List<Point> _path;
 
         protected Enemy(Room room, Vector2 position, int width, int height) : base(position, width, height)
         {
-            _room = room;
+            PathUpdateInterval = DEFAULT_UPDATE_INTERVAL;
+            Room = room;
             MaxHealth = 20;
             CurrentHealth = MaxHealth;
             MovingSpeed = 2;
             ActiveGun = new DefaultGun(this);
-            _ticksSincePathUpdate = PATH_UPDATE_INTERVAL;
+            Path = new List<Point>();
         }
 
         public void Update(GameObject target, List<GameObject> gameObjects, bool noPathUpdate)
@@ -42,106 +45,78 @@ namespace DungeonCrawler.GameObjects.Enemies
             Shoot(gameObjects);
         }
 
-        private void ChaseTarget(GameObject target, List<GameObject> gameObjects, bool noPathUpdate)
+        protected void UpdatePath(GameObject targetObject, List<GameObject> otherObjects)
         {
-            // Rotate towards target
-            var (x, y) = Vector2.Subtract(target.Position, Position);
-            Rotation = (float) Math.Atan2(y, x);
-
-            if (_ticksSincePathUpdate >= PATH_UPDATE_INTERVAL && !noPathUpdate)
-            {
-                // Calculate path
-                const int MAX_TARGET_DISTANCE = 1000;
-                const int MIN_TARGET_DISTANCE = 100;
-                const int MOVE_BACK_DISTANCE = 90;
-                const int MOVE_BACK_AMOUNT = 10;
-
-                var localPosition = Position - _room.Position;
-                var localTargetPosition = target.Position - _room.Position;
-                var actualTarget = localTargetPosition;
-                var distanceVector = Vector2.Subtract(localTargetPosition, localPosition);
-
-                // If distance is too long, set actual target to MAX_TARGET_DISTANCE towards target
-                if (distanceVector.Length() > MAX_TARGET_DISTANCE)
-                {
-                    actualTarget = localPosition + Vector2.Normalize(distanceVector) * MAX_TARGET_DISTANCE;
-                }
-                
-                // Check if we are close to target
-                if (distanceVector.Length() < MIN_TARGET_DISTANCE)
-                {
-                    // Calculate if target is visible
-                    var targetIsVisible = IsProjectileGoingToHitPlayer(gameObjects);
-                
-                    // Only if target is visible care about being too close to target
-                    if (targetIsVisible)
-                    {
-                        if (distanceVector.Length() < MOVE_BACK_DISTANCE)
-                        {
-                            if (distanceVector.Length() == 0)
-                            {
-                                // If target is top off us, then move somewhere else
-                                distanceVector = Vector2.UnitX;
-                            }
-                
-                            // Move back, too close to target
-                            actualTarget = localPosition - Vector2.Normalize(distanceVector) * MOVE_BACK_AMOUNT;
-                        }
-                        else
-                        {
-                            // Stop, close enough to target
-                            _path = new List<Point>();
-                            _ticksSincePathUpdate = 0;
-                            return;
-                        }
-                    }
-                }
-
-                var path = Pathfinding.FindPath((localPosition / _room.RoomGraph.TranslationFactor).ToPoint(),
-                    (actualTarget / _room.RoomGraph.TranslationFactor).ToPoint(), _room.RoomGraph.Graph);
-
-                // If pathfinding failed, path will be empty
-                if (path.Count > 0)
-                {
-                    _path = path;
-
-                    // Remove the first position to make movement smoother
-                    if (_path.Count > 1) _path.RemoveAt(0);
-                }
-            }
-            else
+            if (_ticksSincePathUpdate < PathUpdateInterval)
             {
                 _ticksSincePathUpdate++;
+                return;
             }
 
-            if (_path is null || _path.Count == 0) return;
+            _ticksSincePathUpdate = 0;
 
+            var ownLocalPos = Position - Room.Position;
+            var movementTarget = DecideMovement(targetObject, otherObjects);
 
-            var nextPosition = new Vector2(_path[0].X * _room.RoomGraph.TranslationFactor,
-                _path[0].Y * _room.RoomGraph.TranslationFactor) + _room.Position;
+            var newPath = Pathfinding.FindPath(
+                (ownLocalPos / Room.RoomGraph.TranslationFactor).ToPoint(),
+                (movementTarget / Room.RoomGraph.TranslationFactor).ToPoint(), 
+                Room.RoomGraph.Graph);
 
-            if (nextPosition == Position) return;
+            // If pathfinding failed, path will be empty
+            if (newPath.Count == 0) return;
 
-            // Move
-            var travelDirection = Vector2.Normalize(Vector2.Subtract(nextPosition, Position));
-            var tentativePosition = Position + travelDirection * MovingSpeed;
+            // Remove the first position to make movement smoother
+            if (newPath.Count > 1) newPath.RemoveAt(0);
 
-            if (Vector2.Distance(Position, tentativePosition) > Vector2.Distance(Position, nextPosition))
-            {
-                // Next position reached
-                Position = nextPosition;
-                _path.RemoveAt(0);
-            }
-            else
-            {
-                Position = tentativePosition;
-            }
+            Path = newPath;
         }
 
-        private bool CheckWalls(Vector2 position)
+        protected abstract Vector2 DecideMovement(GameObject targetObject, List<GameObject> otherObjects);
+
+        private void ChaseTarget(GameObject target, List<GameObject> gameObjects, bool noPathUpdate)
         {
-            var collider = new Dummy(position, 10, 10);
-            return CollisionDetection.GetCollisions(collider, _room.Walls.Cast<GameObject>().ToList()).Count > 0;
+            RotateTowardsTarget(target);
+
+            if (!noPathUpdate) UpdatePath(target, gameObjects);
+
+            MoveTowardsNextPoint();
+        }
+
+        private Vector2 TranslatePathPoint(Point pathPoint)
+        {
+            var (x, y) = pathPoint;
+            return new Vector2(x * Room.RoomGraph.TranslationFactor,
+                y * Room.RoomGraph.TranslationFactor) + Room.Position;
+        }
+
+        private void MoveTowardsNextPoint()
+        {
+            if (Path.Count == 0) return;
+
+            var nextPathPosition = TranslatePathPoint(Path[0]);
+            var nextPathPositionVec = Vector2.Subtract(nextPathPosition, Position);
+
+            while (MovingSpeed > nextPathPositionVec.Length())
+            {
+                // Will overshoot next path point, continue on towards the subsequent one
+                Position = nextPathPosition;
+                Path.RemoveAt(0);
+
+                if (Path.Count == 0) return;
+
+                nextPathPosition = TranslatePathPoint(Path[0]);
+                nextPathPositionVec = Vector2.Subtract(nextPathPosition, Position);
+            }
+
+            var newPosition = Vector2.Normalize(nextPathPositionVec) * MovingSpeed + Position;
+            Position = newPosition;
+        }
+
+        private void RotateTowardsTarget(GameObject target)
+        {
+            var (x, y) = Vector2.Subtract(target.Position, Position);
+            Rotation = (float) Math.Atan2(y, x);
         }
 
         private void Shoot(List<GameObject> gameObjects)
@@ -152,10 +127,10 @@ namespace DungeonCrawler.GameObjects.Enemies
             ActiveGun.FillAmmo();
 
             if (IsProjectileGoingToHitPlayer(gameObjects))
-                _room.Projectiles.AddRange(ActiveGun.Shoot(Position, projectileTravelVector));
+                Room.Projectiles.AddRange(ActiveGun.Shoot(Position, projectileTravelVector));
         }
 
-        private bool IsProjectileGoingToHitPlayer(List<GameObject> gameObjects)
+        protected bool IsProjectileGoingToHitPlayer(List<GameObject> gameObjects)
         {
             // Enemy is always facing player so travel vector can be calculated using rotation
             var projectileTravelVector = CollisionDetection.RotateVector(Vector2.UnitX, Rotation);
@@ -193,7 +168,24 @@ namespace DungeonCrawler.GameObjects.Enemies
 
             return projectileHitPlayer;
         }
+        
+        protected Vector2 GetRandomPointNearPosition(Vector2 position, int maxDistance)
+        {
+            var random = new Random();
 
+            var distance = random.Next(maxDistance);
+
+            var xLower = (int) Math.Min(Math.Max(position.X - distance, 0), Room.Width);
+            var xUpper = (int) Math.Max(Math.Min(position.X + distance, Room.Width), 0);
+            var yLower = (int) Math.Min(Math.Max(position.Y - distance, 0), Room.Height);
+            var yUpper = (int) Math.Max(Math.Min(position.Y + distance, Room.Height), 0);
+
+
+            var randomX = random.Next(xLower, xUpper + 1);
+            var randomY = random.Next(yLower, yUpper + 1);
+
+            return new Vector2(randomX, randomY);
+        }
 
         public void ProjectileCollision(Projectile projectile)
         {

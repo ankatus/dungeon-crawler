@@ -1,27 +1,25 @@
-﻿using DungeonCrawler.Guns;
+﻿using System;
+using System.Collections.Generic;
 using DungeonCrawler.Rooms;
 using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DungeonCrawler.GameObjects.Enemies
 {
-    public class StrongEnemy : Enemy
+    public class SmallEnemy : Enemy
     {
-        private const int WIDTH = 30;
-        private const int HEIGHT = 60;
-
-        public StrongEnemy(Room room, Vector2 position) : base(room, position, WIDTH, HEIGHT)
+        private enum ChaseSide
         {
-            // Give this slow dude a bit more time to move before calculating a new path
-            PathUpdateInterval = 20;
-            MaxHealth = 60;
-            CurrentHealth = MaxHealth;
-            MovingSpeed = 1;
-            ActiveGun = new Shotgun(this);
+            Top, Right, Bottom, Left
+        }
+
+        private const int WIDTH = 30;
+        private const int HEIGHT = 30;
+        
+        private readonly ChaseSide _chaseSide;
+
+        public SmallEnemy(Room room, Vector2 position) : base(room, position, WIDTH, HEIGHT)
+        {
+            _chaseSide = PickRandomChaseSide();
         }
 
         protected override Vector2 DecideMovement(GameObject targetObject, List<GameObject> otherObjects)
@@ -30,7 +28,6 @@ namespace DungeonCrawler.GameObjects.Enemies
             const int MIN_TARGET_DISTANCE = 100;
             const int MOVE_BACK_DISTANCE = 90;
             const int MOVE_BACK_AMOUNT = 10;
-            const int RANDOM_POS_MAX_DISTANCE = 1000;
 
             var ownLocalPos = Position - Room.Position;
             var targetObjLocalPos = targetObject.Position - Room.Position;
@@ -50,7 +47,7 @@ namespace DungeonCrawler.GameObjects.Enemies
                 var targetIsVisible = IsProjectileGoingToHitPlayer(otherObjects);
 
                 // Only if target is visible care about being too close to target
-                if (!targetIsVisible) return GetRandomPointNearPosition(targetObjLocalPos, RANDOM_POS_MAX_DISTANCE);
+                if (!targetIsVisible) return PickMovementTarget(targetObjLocalPos);
 
                 if (distanceVector.Length() < MOVE_BACK_DISTANCE)
                 {
@@ -70,7 +67,29 @@ namespace DungeonCrawler.GameObjects.Enemies
                 }
             }
 
-            return GetRandomPointNearPosition(targetObjLocalPos, RANDOM_POS_MAX_DISTANCE);
+            return PickMovementTarget(targetObjLocalPos);
+        }
+
+        private Vector2 PickMovementTarget(Vector2 targetObjLocation)
+        {
+            const int RANDOM_POS_MAX_DISTANCE = 200;
+            const int SIDE_POS_OFFSET_FROM_TARGET = 200;
+
+            return _chaseSide switch
+            {
+                ChaseSide.Top => GetRandomPointNearPosition(new Vector2(targetObjLocation.X, targetObjLocation.Y - SIDE_POS_OFFSET_FROM_TARGET), RANDOM_POS_MAX_DISTANCE),
+                ChaseSide.Right => GetRandomPointNearPosition(new Vector2(targetObjLocation.X + SIDE_POS_OFFSET_FROM_TARGET, targetObjLocation.Y), RANDOM_POS_MAX_DISTANCE),
+                ChaseSide.Bottom => GetRandomPointNearPosition(new Vector2(targetObjLocation.X, targetObjLocation.Y + SIDE_POS_OFFSET_FROM_TARGET), RANDOM_POS_MAX_DISTANCE),
+                ChaseSide.Left => GetRandomPointNearPosition(new Vector2(targetObjLocation.X - SIDE_POS_OFFSET_FROM_TARGET, targetObjLocation.Y), RANDOM_POS_MAX_DISTANCE),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+
+        private static ChaseSide PickRandomChaseSide()
+        {
+            var random = new Random();
+            var values = Enum.GetValues(typeof(ChaseSide));
+            return (ChaseSide) values.GetValue(random.Next(4));
         }
     }
 }

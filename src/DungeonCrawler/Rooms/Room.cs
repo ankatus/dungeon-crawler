@@ -54,7 +54,7 @@ namespace DungeonCrawler.Rooms
             Projectiles = new List<Projectile>();
             Items = new List<Item>();
             SpawnableItems = new List<Item>();
-            RoomGraph = new RoomGraph(this, new DefaultEnemy(this, Vector2.Zero));
+            RoomGraph = new RoomGraph(this);
             SpawnPoints = new List<Vector2>();
             RandomGenerator = new Random();
         }

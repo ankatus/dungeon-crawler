@@ -54,16 +54,16 @@ namespace DungeonCrawler.Rooms
             // Spawn Enemies
             var enemies = new List<Enemy>();
             var numberOfEnemies = RandomGenerator.Next(MIN_NUMBER_OF_ENEMIES, MAX_NUMBER_OF_ENEMIES + 1);
-            var enemyTypes = new List<Type> { typeof(DefaultEnemy), typeof(StrongEnemy) };
+            var enemyTypes = new List<Type> { typeof(SmallEnemy), typeof(StrongEnemy) };
             for (var i = numberOfEnemies; i > 0; i--)
             {
                 var enemyTypeIndex = RandomGenerator.Next(0, enemyTypes.Count);
                 var enemyType = enemyTypes[enemyTypeIndex];
                 Enemy enemy;
 
-                if (enemyType == typeof(DefaultEnemy))
+                if (enemyType == typeof(SmallEnemy))
                 {
-                    enemy = new DefaultEnemy(this, new Vector2(0, 0));
+                    enemy = new SmallEnemy(this, new Vector2(0, 0));
                 }
                 else if (enemyType == typeof(StrongEnemy))
                 {
