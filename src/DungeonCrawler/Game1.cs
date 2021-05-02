@@ -136,38 +136,6 @@ namespace DungeonCrawler
                 return;
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Add))
-            {
-                // Zoom camera in
-                Camera.Width = (int) Math.Floor(Camera.Width * 0.99);
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Subtract))
-            {
-                // Zoom camera out
-                Camera.Width = (int) Math.Ceiling(Camera.Width * 1.01);
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Right))
-            {
-                Camera.TopLeft.X++;
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Down))
-            {
-                Camera.TopLeft.Y++;
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Left))
-            {
-                Camera.TopLeft.X--;
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Up))
-            {
-                Camera.TopLeft.Y--;
-            }
-
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
             {
                 // Zoom to show map
