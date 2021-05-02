@@ -24,5 +24,5 @@ Get the correct version for your OS from [the release](https://github.com/ankatu
 Windows: Unzip and execute. (DungeonCrawler.exe)  
 Linux: Extract, give execute rights and execute (`./DungeonCrawler`).  
 (Full screen mode might not work correctly if you don't have 16:9 monitor aspect ratio)  
-(Tested on Windows 10 and Ubuntu 16.04)
-
+(Tested on Windows 10 and Ubuntu 16.04)  
+(IMPORTANT: A virtual machine hosted in VirtualBox will most likely not be able to run this game, as the game requires OpenGL 3.0 which is not supported by VirtualBox)
