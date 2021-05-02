@@ -20,6 +20,7 @@ Space - Show map (Shows current and cleared rooms)
 Esc - Pause  
 
 # Launching the game
+Get the correct version for your OS from [the release](https://github.com/ankatus/dungeon-crawler/releases/tag/v1.0)  
 Windows: Unzip and execute.  
 Linux: Extract, give execute rights and execute.  
 (Full screen mode might not work correctly if you don't have 16:9 monitor aspect ratio)  
