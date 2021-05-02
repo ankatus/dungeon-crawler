@@ -100,7 +100,6 @@ namespace DungeonCrawler
                 {
                     // Texture not found, use default texture
                     Debug.WriteLine("Did not find texture for " + name);
-                    Logger.Log("Did not find texture for " + name, "game");
                     texture = _game.Content.Load<Texture2D>("textures/Default");
                 }
 
