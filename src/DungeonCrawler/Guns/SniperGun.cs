@@ -20,7 +20,14 @@ namespace DungeonCrawler.Guns
             var projectiles = new List<Projectile>();
             if (!CanFire) return projectiles;
 
-            projectiles.Add(new Projectile(position, direction, Damage, Speed, Owner));
+            var projectile = new Projectile(position, direction, Damage, Speed, Owner)
+            {
+                // Make projectile larger than default
+                Width = 12,
+                Height = 4
+            };
+
+            projectiles.Add(projectile);
             LastShot = DateTime.Now;
 
             Ammo -= 1;
