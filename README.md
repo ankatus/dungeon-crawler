@@ -21,8 +21,8 @@ Esc - Pause
 
 # Launching the game
 Get the correct version for your OS from [the release](https://github.com/ankatus/dungeon-crawler/releases/tag/v1.0)  
-Windows: Unzip and execute.  
-Linux: Extract, give execute rights and execute.  
+Windows: Unzip and execute. (DungeonCrawler.exe)  
+Linux: Extract, give execute rights and execute (`./DungeonCrawler`).  
 (Full screen mode might not work correctly if you don't have 16:9 monitor aspect ratio)  
 (Tested on Windows 10 and Ubuntu 16.04)
 
