@@ -85,6 +85,7 @@ namespace DungeonCrawler.UI
             PauseMenu = new Menu(new Vector2(Width / 2, Height / 2), MENU_WIDTH,
                 MENU_HEIGHT);
             PauseMenu.AddButton("Continue", () => { _game.GameState = GameState.Playing; });
+            PauseMenu.AddButton("Options", ShowOptionsMenu);
             PauseMenu.AddButton("How to play", ShowHowToPlayMenu);
             PauseMenu.AddButton("Exit to main menu", () => { _game.GameState = GameState.NotStarted; ShowMainMenu("Main Menu"); });
             PauseMenu.InfoMessage = "Game Paused";
